@@ -72,6 +72,7 @@ class Indicator extends PanelMenu.Button {
         this._data = null;
         this._error = null;
         this._busy = false;
+        this._destroyed = false;
         this._timeoutId = 0;
 
         this._buildPanel();
@@ -218,7 +219,7 @@ class Indicator extends PanelMenu.Button {
     }
 
     async refresh() {
-        if (this._busy)
+        if (this._busy || this._destroyed)
             return;
 
         this._busy = true;
@@ -238,10 +239,13 @@ class Indicator extends PanelMenu.Button {
                 console.warn(`[claude-usage] ${this._error.code} ${this._error.detail}`);
             }
         } finally {
+            // Un relevé dure cinq secondes : l'extension a pu être désactivée
+            // entre-temps, et il n'y a plus rien à redessiner.
             this._busy = false;
-            if (this._refreshButton)
+            if (!this._destroyed) {
                 this._refreshButton.reactive = true;
-            this._render();
+                this._render();
+            }
         }
     }
 
@@ -383,6 +387,7 @@ class Indicator extends PanelMenu.Button {
     }
 
     destroy() {
+        this._destroyed = true;
         if (this._timeoutId) {
             GLib.source_remove(this._timeoutId);
             this._timeoutId = 0;
