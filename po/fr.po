@@ -1,0 +1,190 @@
+# Traduction française de l'extension Claude Usage.
+# Copyright (C) 2026 Salvador Cardona
+# This file is distributed under the same license as the claude-usage package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: claude-usage 1.0.0\n"
+"Report-Msgid-Bugs-To: https://github.com/SalvadorCardona/gnome-claude-usage/issues\n"
+"POT-Creation-Date: 2026-08-27 15:00+0200\n"
+"PO-Revision-Date: 2026-08-27 15:00+0200\n"
+"Language-Team: français\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#: extension.js
+msgid "Claude usage"
+msgstr "Consommation Claude"
+
+#: extension.js
+msgid "Settings…"
+msgstr "Paramètres…"
+
+#: extension.js
+msgid "Current session"
+msgstr "Session courante"
+
+#: extension.js
+msgid "5-hour window"
+msgstr "fenêtre de 5 heures"
+
+#: extension.js
+msgid "This week"
+msgstr "Semaine"
+
+#: extension.js
+msgid "all models"
+msgstr "tous modèles"
+
+#: extension.js
+msgid "The “claude” command was not found"
+msgstr "La commande « claude » est introuvable"
+
+#: extension.js
+msgid "“claude -p /usage” failed"
+msgstr "« claude -p /usage » a échoué"
+
+#: extension.js
+msgid "Unexpected answer from “claude -p /usage”"
+msgstr "Réponse inattendue de « claude -p /usage »"
+
+#: extension.js
+msgid "Could not read your usage"
+msgstr "Relevé impossible"
+
+#: extension.js
+msgid "Reading…"
+msgstr "Relevé en cours…"
+
+#: extension.js
+msgid "No reading yet"
+msgstr "Aucun relevé"
+
+#: extension.js
+msgid "Read at %s"
+msgstr "Relevé de %s"
+
+#: format.js
+msgid "today at %s"
+msgstr "aujourd'hui à %s"
+
+#: format.js
+msgid "tomorrow at %s"
+msgstr "demain à %s"
+
+#. Jour, mois, heure : « 31 août à 16:00 »
+#: format.js
+msgid "%s %s at %s"
+msgstr "%s %s à %s"
+
+#: format.js
+msgid "Last %s hour"
+msgid_plural "Last %s hours"
+msgstr[0] "Dernière %s heure"
+msgstr[1] "Dernières %s heures"
+
+#: format.js
+msgid "Last %s day"
+msgid_plural "Last %s days"
+msgstr[0] "Dernier %s jour"
+msgstr[1] "%s derniers jours"
+
+#: format.js
+msgid "%s request"
+msgid_plural "%s requests"
+msgstr[0] "%s requête"
+msgstr[1] "%s requêtes"
+
+#: format.js
+msgid "%s session"
+msgid_plural "%s sessions"
+msgstr[0] "%s session"
+msgstr[1] "%s sessions"
+
+#: format.js
+msgid "%s with %s or more sessions in parallel"
+msgstr "%s avec %s sessions ou plus en parallèle"
+
+#: format.js
+msgid "%s beyond %s of context"
+msgstr "%s au-delà de %s de contexte"
+
+#: format.js
+msgid "%s from sessions open %s hours or more"
+msgstr "%s depuis des sessions ouvertes %s heures ou plus"
+
+#: format.js
+msgid "Most used skills: %s"
+msgstr "Compétences les plus sollicitées : %s"
+
+#: format.js
+msgid "Most used MCP servers: %s"
+msgstr "Serveurs MCP les plus sollicités : %s"
+
+#. Typographie française : espace insécable devant le signe pourcent.
+#: format.js
+msgid "%s%%"
+msgstr "%s %%"
+
+#: prefs.js
+msgid "General"
+msgstr "Général"
+
+#: prefs.js
+msgid "Display"
+msgstr "Affichage"
+
+#: prefs.js
+msgid "What the top bar pie shows."
+msgstr "Ce que montre le camembert de la barre supérieure."
+
+#: prefs.js
+msgid "Limit shown"
+msgstr "Limite affichée"
+
+#: prefs.js
+msgid "Current session (5 h)"
+msgstr "Session courante (5 h)"
+
+#: prefs.js
+msgid "This week, all models"
+msgstr "Semaine, tous modèles"
+
+#: prefs.js
+msgid "This week, main model"
+msgstr "Semaine, modèle principal"
+
+#: prefs.js
+msgid "Whichever of the three is highest"
+msgstr "La plus consommée des trois"
+
+#: prefs.js
+msgid "Show the percentage"
+msgstr "Afficher le pourcentage"
+
+#: prefs.js
+msgid "As a number, next to the pie."
+msgstr "En chiffres, à côté du camembert."
+
+#: prefs.js
+msgid "Reading"
+msgstr "Relevé"
+
+#: prefs.js
+msgid "The figures come from “claude -p /usage”, which takes about five seconds to answer and consumes no tokens. The binary path can stay empty: it is looked up in PATH, then in ~/.local/bin/claude and ~/.claude/local/claude."
+msgstr "Les chiffres viennent de « claude -p /usage », qui met environ cinq secondes à répondre et ne consomme aucun jeton. Le chemin du binaire peut rester vide : il est cherché dans le PATH, puis dans ~/.local/bin/claude et ~/.claude/local/claude."
+
+#: prefs.js
+msgid "Refresh interval"
+msgstr "Intervalle de rafraîchissement"
+
+#: prefs.js
+msgid "In seconds. The menu also refreshes when opened."
+msgstr "En secondes. Le menu se rafraîchit aussi à l’ouverture."
+
+#: prefs.js
+msgid "Path to the claude binary"
+msgstr "Chemin du binaire claude"

@@ -1,0 +1,4 @@
+# Produits de construction : le catalogue compilé et l'archive de publication.
+locale/
+dist/
+schemas/gschemas.compiled

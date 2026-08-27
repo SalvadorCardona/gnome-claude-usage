@@ -1,0 +1,88 @@
+/* Barre supérieure */
+
+.claude-usage-panel-label {
+    font-feature-settings: "tnum";
+    font-size: 0.9em;
+    padding-left: 4px;
+}
+
+/* Menu */
+
+.claude-usage-header {
+    padding-top: 6px;
+    padding-bottom: 2px;
+}
+
+.claude-usage-title {
+    font-weight: bold;
+}
+
+.claude-usage-refresh {
+    border-radius: 99px;
+    padding: 4px;
+    color: inherit;
+}
+
+.claude-usage-refresh:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.claude-usage-gauges-item {
+    padding-top: 6px;
+    padding-bottom: 6px;
+}
+
+.claude-usage-gauges {
+    spacing: 8px;
+    min-width: 340px;
+}
+
+.claude-usage-gauge {
+    spacing: 2px;
+    min-width: 108px;
+}
+
+.claude-usage-gauge-value {
+    font-size: 1.15em;
+    font-weight: bold;
+    font-feature-settings: "tnum";
+}
+
+.claude-usage-gauge-label {
+    font-size: 0.95em;
+    padding-top: 6px;
+}
+
+.claude-usage-gauge-hint,
+.claude-usage-gauge-reset {
+    font-size: 0.8em;
+    color: rgba(255, 255, 255, 0.65);
+}
+
+.claude-usage-details {
+    spacing: 2px;
+    max-width: 360px;
+}
+
+.claude-usage-section-title {
+    font-size: 0.9em;
+    font-weight: bold;
+    padding-top: 6px;
+}
+
+.claude-usage-bullet {
+    font-size: 0.85em;
+    color: rgba(255, 255, 255, 0.7);
+    padding-left: 10px;
+}
+
+.claude-usage-error {
+    font-size: 0.85em;
+    max-width: 340px;
+}
+
+.claude-usage-footer .popup-menu-item StLabel,
+.claude-usage-footer {
+    font-size: 0.85em;
+    color: rgba(255, 255, 255, 0.6);
+}
