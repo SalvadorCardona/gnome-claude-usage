@@ -1,6 +1,6 @@
 # Claude Usage
 
-*[Version française](README.fr.md)*
+*[Version française](README.fr.md)* · [extensions.gnome.org](https://extensions.gnome.org/extension/10785/claude-usage/)
 
 A GNOME Shell indicator for your **Claude Code** usage: a pie in the top bar for
 the current five-hour window, and the full picture on click — the weekly limits,
@@ -32,6 +32,12 @@ and re-renders it in yours. A sentence it does not recognise is shown as it came
 rather than mangled — the wording is not a documented interface and may change.
 
 ## Install
+
+On [extensions.gnome.org](https://extensions.gnome.org/extension/10785/claude-usage/) — the one-click route, once the
+listing clears review (it is *Unreviewed* until a GNOME reviewer has looked at
+it, and the site marks it incompatible until then).
+
+From source, which works right now:
 
 ```bash
 git clone https://github.com/SalvadorCardona/gnome-claude-usage.git

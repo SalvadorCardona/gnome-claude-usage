@@ -1,6 +1,6 @@
 # Claude Usage
 
-*[English version](README.md)*
+*[English version](README.md)* · [extensions.gnome.org](https://extensions.gnome.org/extension/10785/claude-usage/)
 
 Un indicateur GNOME Shell pour votre consommation **Claude Code** : un camembert
 dans la barre supérieure pour la fenêtre de cinq heures en cours, et le détail au
@@ -34,6 +34,12 @@ est affichée telle quelle plutôt que déformée — ce vocabulaire n'est pas u
 interface documentée et peut changer.
 
 ## Installation
+
+Sur [extensions.gnome.org](https://extensions.gnome.org/extension/10785/claude-usage/) — l'installation en un clic, une
+fois la fiche relue (elle reste *Unreviewed* tant qu'un relecteur GNOME n'y est
+pas passé, et le site la marque incompatible d'ici là).
+
+Depuis les sources, ce qui marche dès maintenant :
 
 ```bash
 git clone https://github.com/SalvadorCardona/gnome-claude-usage.git
