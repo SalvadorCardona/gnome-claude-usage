@@ -87,6 +87,12 @@ po/, tools/    translations and the .po → .mo compiler
 That is what lets its rules be exercised outside the shell, where
 `resource:///` modules do not exist.
 
+## Credits
+
+The icon was generated with Google's Gemini 2.5 Flash Image (“nano banana”) via
+OpenRouter, then mirrored so the arc sweeps clockwise like the gauge in the
+extension itself.
+
 ## Licence
 
 GPL-2.0-or-later. Not affiliated with Anthropic.

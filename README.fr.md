@@ -91,6 +91,12 @@ po/, tools/    traductions et compilateur .po → .mo
 ce qui permet d'éprouver ses règles hors du shell, où les modules
 `resource:///` n'existent pas.
 
+## Crédits
+
+L'icône a été générée avec Gemini 2.5 Flash Image de Google (« nano banana ») via
+OpenRouter, puis retournée en miroir pour que l'arc tourne dans le sens horaire,
+comme la jauge de l'extension.
+
 ## Licence
 
 GPL-2.0-or-later. Sans affiliation avec Anthropic.
