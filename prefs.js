@@ -75,5 +75,20 @@ export default class ClaudeUsagePreferences extends ExtensionPreferences {
         path.connect('apply', row => settings.set_string('claude-path', row.text.trim()));
         reading.add(path);
 
+        const about = new Adw.PreferencesGroup({
+            title: _('About'),
+        });
+        page.add(about);
+
+        const author = new Adw.ActionRow({
+            title: _('Author'),
+            subtitle: 'Salvador Cardona — cardona.digital',
+            activatable: true,
+        });
+        author.add_suffix(new Gtk.Image({icon_name: 'adw-external-link-symbolic'}));
+        author.connect('activated', () => {
+            new Gtk.UriLauncher({uri: 'https://cardona.digital'}).launch(window, null, null);
+        });
+        about.add(author);
     }
 }

@@ -103,6 +103,12 @@ L'icône a été générée avec Gemini 2.5 Flash Image de Google (« nano banan
 OpenRouter, puis retournée en miroir pour que l'arc tourne dans le sens horaire,
 comme la jauge de l'extension.
 
+## Auteur
+
+Écrit et maintenu par Salvador Cardona, développeur web —
+[site de Salvador Cardona](https://cardona.digital). Les sources sont sur
+[GitHub](https://github.com/SalvadorCardona/gnome-claude-usage).
+
 ## Licence
 
 GPL-2.0-or-later. Sans affiliation avec Anthropic.

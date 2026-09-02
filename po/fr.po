@@ -188,3 +188,11 @@ msgstr "En secondes. Le menu se rafraîchit aussi à l’ouverture."
 #: prefs.js
 msgid "Path to the claude binary"
 msgstr "Chemin du binaire claude"
+
+#: prefs.js
+msgid "About"
+msgstr "À propos"
+
+#: prefs.js
+msgid "Author"
+msgstr "Auteur"
