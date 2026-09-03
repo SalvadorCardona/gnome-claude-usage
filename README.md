@@ -99,6 +99,12 @@ The icon was generated with Google's Gemini 2.5 Flash Image (“nano banana”) 
 OpenRouter, then mirrored so the arc sweeps clockwise like the gauge in the
 extension itself.
 
+## Author
+
+Written and maintained by Salvador Cardona, web developer —
+[site de Salvador Cardona](https://cardona.digital). The source lives on
+[GitHub](https://github.com/SalvadorCardona/gnome-claude-usage).
+
 ## Licence
 
 GPL-2.0-or-later. Not affiliated with Anthropic.
