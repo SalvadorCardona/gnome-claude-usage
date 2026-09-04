@@ -2,7 +2,7 @@
   "uuid": "claude-usage@salvadorcardona.github.io",
   "name": "Claude Usage",
   "description": "Shows your Claude Code usage as a pie in the top bar: the current 5-hour window at a glance, and on click the weekly limits with their reset times plus what is driving your consumption. Reads the official figures from “claude -p /usage” — no API key, no token spent.",
-  "url": "https://cardona.digital",
+  "url": "https://cardona.digital/gnome-claude-usage/",
   "shell-version": [
     "48",
     "49",
