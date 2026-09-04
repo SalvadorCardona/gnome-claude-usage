@@ -1,0 +1,943 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Claude Usage — your Claude Code limits, in the GNOME top bar</title>
+<meta name="description" content="A GNOME Shell indicator for Claude Code: a ring in the top bar for the current five-hour window, and on click the weekly limits, their reset times, and what is driving your consumption. The account's own figures, read from “claude -p /usage” — no API key, no token spent.">
+<meta name="theme-color" content="#0b0d12">
+<link rel="canonical" href="https://cardona.digital/gnome-claude-usage/">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%3E%3Ccircle%20cx='12'%20cy='12'%20r='8.5'%20fill='none'%20stroke='%23ffffff'%20stroke-opacity='.22'%20stroke-width='5'/%3E%3Cpath%20d='M12%203.5a8.5%208.5%200%200%201%207.9%2011.7'%20fill='none'%20stroke='%2340b84f'%20stroke-width='5'%20stroke-linecap='round'/%3E%3C/svg%3E">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Claude Usage — your Claude Code limits, in the GNOME top bar">
+<meta property="og:description" content="A ring in the top bar for the five-hour window; on click, the weekly limits and what is driving them. The account's own figures, not an estimate.">
+<meta property="og:url" content="https://cardona.digital/gnome-claude-usage/">
+<meta property="og:image" content="https://cardona.digital/gnome-claude-usage/menu-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0b0d12; --panel:#141821; --panel-2:#1a1f2a;
+    --line:#252b38; --line-soft:#1e2430;
+    --text:#e9ecf3; --muted:#9aa3b5; --dim:#6f7889;
+
+    /* Les quatre couleurs de la jauge, telles que pie.js les dessine. */
+    --green:#40b84f; --amber:#d19921; --orange:#f08740; --red:#f7524a;
+
+    --accent:#40b84f; --accent-2:#7fdc8b;
+    --accent-wash:rgba(64,184,79,.12); --accent-line:rgba(64,184,79,.34);
+
+    --mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;
+    --serif:'Instrument Serif',Georgia,'Times New Roman',serif;
+    --radius:14px;
+    --wrap:1080px;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth;scroll-padding-top:86px;-webkit-text-size-adjust:100%}
+  @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+  body{
+    margin:0;background:var(--bg);color:var(--text);
+    font-family:var(--sans);font-size:16.5px;line-height:1.65;
+    -webkit-font-smoothing:antialiased;overflow-x:hidden;
+  }
+  body::before{
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+    background:
+      radial-gradient(760px 420px at 50% -8%, rgba(64,184,79,.13), transparent 70%),
+      radial-gradient(520px 320px at 86% 10%, rgba(127,220,139,.05), transparent 70%);
+  }
+  .wrap{width:min(100% - 40px,var(--wrap));margin-inline:auto;position:relative;z-index:1}
+
+  a{color:var(--accent-2);text-decoration:none}
+  a:hover{text-decoration:underline;text-underline-offset:3px}
+  code{font-family:var(--mono);font-size:.875em}
+  :not(pre)>code{
+    background:var(--panel-2);border:1px solid var(--line-soft);
+    padding:.12em .38em;border-radius:5px;color:#cfead2;white-space:nowrap;
+  }
+  em{color:var(--text);font-style:normal;font-weight:500}
+
+  /* ---------- nav ---------- */
+  header.nav{
+    position:sticky;top:0;z-index:50;
+    background:rgba(11,13,18,.78);backdrop-filter:blur(14px);
+    border-bottom:1px solid transparent;transition:border-color .25s,background .25s;
+  }
+  header.nav.stuck{border-bottom-color:var(--line);background:rgba(11,13,18,.92)}
+  .nav-in{display:flex;align-items:center;gap:26px;height:64px}
+  .brand{display:flex;align-items:center;gap:9px;font-weight:600;letter-spacing:-.015em;color:var(--text)}
+  .brand:hover{text-decoration:none}
+  .brand svg{width:20px;height:20px;flex:none}
+  .nav-links{display:flex;gap:22px;margin-left:auto;align-items:center}
+  .nav-links a{color:var(--muted);font-size:14.5px;font-weight:500}
+  .nav-links a:hover{color:var(--text);text-decoration:none}
+  .nav-gh{
+    display:inline-flex;align-items:center;gap:7px;color:var(--text)!important;
+    border:1px solid var(--line);border-radius:9px;padding:6px 12px;
+  }
+  .nav-gh:hover{border-color:var(--accent-line);background:var(--accent-wash)}
+  .nav-gh svg{width:16px;height:16px;fill:currentColor}
+  @media (max-width:900px){.nav-links a:not(.nav-gh){display:none}}
+
+  /* ---------- hero ---------- */
+  .hero{padding:82px 0 24px;text-align:center}
+  .eyebrow{
+    display:inline-flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:4px 9px;
+    font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);
+    border:1px solid var(--line);border-radius:999px;padding:6px 15px;background:var(--panel);
+  }
+  .eyebrow b{color:var(--accent-2);font-weight:600}
+  h1{
+    font-family:var(--serif);font-weight:400;
+    font-size:clamp(50px,9vw,100px);line-height:.98;letter-spacing:-.02em;
+    margin:26px 0 0;
+  }
+  h1 .dot{color:var(--accent)}
+  .lede{max-width:690px;margin:22px auto 0;font-size:clamp(17px,2.3vw,20px);color:#c6cddb;line-height:1.62}
+  .lede strong{color:var(--text);font-weight:600}
+  .byline{margin-top:16px;font-size:14.5px;color:var(--dim)}
+  .byline a{color:var(--muted);border-bottom:1px solid var(--line)}
+  .byline a:hover{color:var(--accent-2);border-color:var(--accent-line);text-decoration:none}
+
+  .cta{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;align-items:center;margin-top:34px}
+  .install{
+    display:flex;align-items:center;gap:12px;background:var(--panel);
+    border:1px solid var(--line);border-radius:12px;padding:11px 11px 11px 16px;
+    font-family:var(--mono);font-size:13.5px;max-width:100%;
+  }
+  .install .prompt{color:var(--accent);user-select:none}
+  .install .cmd{overflow-x:auto;white-space:nowrap;color:#dfe5f0;scrollbar-width:none}
+  .install .cmd::-webkit-scrollbar{display:none}
+  .copy{
+    flex:none;display:inline-flex;align-items:center;gap:6px;cursor:pointer;
+    background:var(--panel-2);border:1px solid var(--line);border-radius:8px;
+    color:var(--muted);font:500 12.5px/1 var(--sans);padding:8px 10px;transition:.18s;
+  }
+  .copy:hover{color:var(--text);border-color:var(--accent-line);background:var(--accent-wash)}
+  .copy.done{color:var(--accent-2);border-color:var(--accent-line)}
+  .btn{
+    display:inline-flex;align-items:center;gap:8px;border-radius:12px;padding:12px 20px;
+    font-weight:600;font-size:15px;border:1px solid var(--line);color:var(--text);
+    background:var(--panel);transition:.18s;
+  }
+  .btn:hover{border-color:var(--accent-line);background:var(--accent-wash);text-decoration:none}
+  .btn.primary{border-color:var(--accent-line);background:var(--accent-wash);color:#dcf7e0}
+  .btn.primary:hover{background:rgba(64,184,79,.2)}
+  .btn svg{width:17px;height:17px;fill:currentColor}
+
+  /* ---------- demo : une réplique du shell ---------- */
+  .demo{margin:60px auto 0;max-width:900px}
+  .shell{
+    position:relative;border:1px solid var(--line);border-radius:16px;overflow:hidden;
+    background:
+      radial-gradient(120% 90% at 18% 8%, #2b1f3d 0%, transparent 60%),
+      radial-gradient(90% 80% at 88% 84%, #123044 0%, transparent 62%),
+      linear-gradient(160deg,#161a24,#0d1016 70%);
+    box-shadow:0 40px 90px -40px rgba(0,0,0,.9),0 0 0 1px rgba(255,255,255,.02) inset;
+    padding-bottom:34px;
+  }
+  .topbar{
+    display:flex;align-items:center;gap:10px;height:38px;padding:0 14px;
+    background:rgba(0,0,0,.62);backdrop-filter:blur(6px);
+    font-size:13px;color:#d6dae4;font-weight:500;
+  }
+  .topbar .activities{opacity:.85}
+  .topbar .clock{margin-inline:auto;opacity:.9;font-variant-numeric:tabular-nums}
+  .topbar .tray{display:flex;align-items:center;gap:9px;opacity:.72}
+  .topbar .tray svg{width:15px;height:15px;fill:none;stroke:#d6dae4;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+  .indicator{
+    display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:999px;
+    background:rgba(255,255,255,.10);cursor:pointer;transition:background .2s;
+    font-variant-numeric:tabular-nums;font-weight:500;
+  }
+  .indicator:hover{background:rgba(255,255,255,.16)}
+  .indicator.open{background:rgba(255,255,255,.2)}
+
+  .menu{
+    width:min(384px,calc(100% - 28px));margin:14px auto 0;
+    background:rgba(28,30,36,.97);border:1px solid rgba(255,255,255,.08);
+    border-radius:14px;padding:8px 4px 4px;
+    box-shadow:0 26px 60px -22px rgba(0,0,0,.85);
+    text-align:left;
+  }
+  .menu.hidden{display:none}
+  .menu-head{display:flex;align-items:center;justify-content:space-between;padding:6px 14px 4px}
+  .menu-head b{font-size:14.5px;font-weight:600;color:#eef1f6}
+  .menu-head .rf{
+    width:26px;height:26px;border-radius:999px;display:grid;place-items:center;
+    cursor:pointer;border:0;background:transparent;color:#cfd5e0;transition:background .18s;
+  }
+  .menu-head .rf:hover{background:rgba(255,255,255,.1)}
+  .menu-head .rf svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round}
+  .menu-head .rf.spin svg{animation:spin .9s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  .gauges{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:10px 8px 4px;text-align:center}
+  .gauge svg{width:78px;height:78px;display:block;margin:0 auto}
+  .gauge .track{fill:none;stroke:rgba(255,255,255,.18);stroke-width:10}
+  .gauge .arc{fill:none;stroke-width:10;stroke-linecap:round;transform:rotate(-90deg);transform-origin:50% 50%;transition:stroke-dasharray .5s ease,stroke .5s ease}
+  .gauge .val{font:600 17px/1 var(--sans);font-variant-numeric:tabular-nums;text-anchor:middle;transition:fill .5s ease}
+  .gauge .t{font-size:13.5px;color:#e4e8f0;margin-top:5px}
+  .gauge .h{font-size:11.5px;color:rgba(255,255,255,.62)}
+  .gauge .r{font-size:11.5px;color:rgba(255,255,255,.62);white-space:nowrap}
+  .menu-sep{height:1px;background:rgba(255,255,255,.09);margin:10px 12px}
+  .details{padding:2px 14px 4px;font-size:12.5px}
+  .details .st{font-weight:600;color:#e4e8f0;margin-top:8px}
+  .details .st:first-child{margin-top:0}
+  .details .b{color:rgba(255,255,255,.7);padding-left:10px;line-height:1.5}
+  .menu-foot{padding:6px 14px 4px;font-size:12.5px;color:rgba(255,255,255,.6)}
+  .menu-item{padding:7px 14px;border-radius:8px;margin:2px 6px 4px;font-size:14px;color:#e4e8f0}
+  .menu-item:hover{background:rgba(255,255,255,.08)}
+  .demo-note{text-align:center;color:var(--dim);font-size:13.5px;margin-top:16px}
+  .demo-note b{color:var(--muted);font-weight:500}
+  @media (max-width:560px){
+    .gauges{grid-template-columns:1fr;gap:14px}
+    .details{display:none}
+  }
+
+  /* ---------- sections ---------- */
+  section{padding:82px 0 0}
+  .sec-head{max-width:680px}
+  .sec-num{font-family:var(--mono);font-size:12.5px;color:var(--accent-2);letter-spacing:.12em;text-transform:uppercase}
+  h2{font-family:var(--serif);font-weight:400;font-size:clamp(32px,5vw,46px);line-height:1.08;letter-spacing:-.015em;margin:12px 0 0}
+  .sec-head p{color:var(--muted);margin:14px 0 0;font-size:16.5px}
+  h3{font-size:17px;font-weight:600;letter-spacing:-.01em;margin:38px 0 12px}
+  p{margin:16px 0}
+  ul.plain{padding-left:20px;color:var(--muted)}
+  ul.plain li{margin:7px 0}
+  ul.plain b{color:var(--text);font-weight:600}
+
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(292px,1fr));gap:16px;margin-top:38px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:22px;transition:border-color .2s,transform .2s}
+  .card:hover{border-color:var(--accent-line);transform:translateY(-2px)}
+  .card .ico{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;background:var(--accent-wash);border:1px solid var(--accent-line);margin-bottom:14px}
+  .card .ico svg{width:17px;height:17px;stroke:var(--accent-2);fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+  .card h4{margin:0 0 7px;font-size:15.5px;font-weight:600}
+  .card p{margin:0;color:var(--muted);font-size:14.5px;line-height:1.6}
+
+  pre{
+    position:relative;background:#0e1117;border:1px solid var(--line);
+    border-radius:12px;padding:17px 19px;overflow-x:auto;margin:20px 0;
+    font-family:var(--mono);font-size:13.5px;line-height:1.7;color:#d5dbe6;
+  }
+  pre .c{color:#6f7889}
+  pre .k{color:var(--accent-2)}
+  pre .s{color:#c9c07f}
+  pre .p{color:var(--accent);user-select:none}
+  .copy-pre{
+    position:absolute;top:9px;right:9px;opacity:0;transition:opacity .18s;
+    background:var(--panel-2);border:1px solid var(--line);color:var(--muted);
+    border-radius:7px;font:500 11.5px/1 var(--sans);padding:6px 9px;cursor:pointer;
+  }
+  pre:hover .copy-pre,.copy-pre:focus{opacity:1}
+  .copy-pre:hover{color:var(--text);border-color:var(--accent-line)}
+  .copy-pre.done{color:var(--accent-2)}
+
+  .tbl{overflow-x:auto;margin:22px 0;border:1px solid var(--line);border-radius:12px}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;min-width:520px}
+  th,td{padding:11px 16px;text-align:left;border-bottom:1px solid var(--line-soft);vertical-align:top}
+  thead th{background:rgba(255,255,255,.018);color:var(--muted);font-weight:500;font-size:12.5px;letter-spacing:.05em;text-transform:uppercase}
+  tbody tr:last-child td{border-bottom:0}
+  tbody tr:hover td{background:rgba(64,184,79,.045)}
+  td code,th code{white-space:nowrap}
+  td:first-child{color:var(--text)}
+  td .sw{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:9px;vertical-align:0}
+
+  ol.steps{list-style:none;counter-reset:s;padding:0;margin:26px 0 0}
+  ol.steps li{counter-increment:s;position:relative;padding:0 0 22px 46px;color:var(--muted);font-size:15.5px}
+  ol.steps li::before{
+    content:counter(s);position:absolute;left:0;top:-1px;width:28px;height:28px;
+    border-radius:50%;background:var(--accent-wash);border:1px solid var(--accent-line);
+    color:var(--accent-2);font:600 13px/26px var(--mono);text-align:center;
+  }
+  ol.steps li::after{content:"";position:absolute;left:13.5px;top:32px;bottom:2px;width:1px;background:var(--line)}
+  ol.steps li:last-child{padding-bottom:0}
+  ol.steps li:last-child::after{display:none}
+  ol.steps b{color:var(--text);font-weight:600}
+
+  .note{
+    border-left:2px solid var(--accent-line);background:var(--accent-wash);
+    border-radius:0 10px 10px 0;padding:16px 20px;margin:22px 0;font-size:14.5px;color:#cfd6e3;
+  }
+  .note p{margin:8px 0}
+  .note p:first-child{margin-top:0}
+  .note p:last-child{margin-bottom:0}
+  .note ul{margin:8px 0;padding-left:20px}
+  .note li{margin:5px 0}
+  .note b{color:var(--text)}
+
+  figure.fig{margin:34px 0 0;text-align:center}
+  figure.fig img{
+    max-width:100%;height:auto;border-radius:14px;border:1px solid var(--line);
+    background:#10131a;box-shadow:0 30px 70px -36px rgba(0,0,0,.9);
+  }
+  figure.fig figcaption{color:var(--dim);font-size:13.5px;margin-top:12px;max-width:620px;margin-inline:auto}
+  .shots{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:22px;align-items:end;margin-top:34px}
+  .shots figure{margin:0}
+
+  .files{
+    background:#0e1117;border:1px solid var(--line);border-radius:12px;padding:18px 20px;
+    font-family:var(--mono);font-size:13px;line-height:1.85;overflow-x:auto;color:var(--muted);margin:22px 0;
+  }
+  .files b{color:#dfe5f0;font-weight:500}
+  .files .ar{color:var(--dim)}
+
+  .author{
+    display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-top:30px;
+    background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:20px 22px;
+  }
+  .author .av{
+    width:46px;height:46px;border-radius:50%;flex:none;display:grid;place-items:center;
+    background:var(--accent-wash);border:1px solid var(--accent-line);
+    color:var(--accent-2);font-weight:600;letter-spacing:.02em;
+  }
+  .author .txt{display:flex;flex-direction:column;min-width:180px;flex:1}
+  .author .txt b{font-size:15.5px}
+  .author .txt span{color:var(--muted);font-size:14px}
+  .author .go{
+    display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);
+    border-radius:10px;padding:9px 14px;color:var(--text);font-size:14.5px;font-weight:500;
+  }
+  .author .go:hover{border-color:var(--accent-line);background:var(--accent-wash);text-decoration:none}
+  .author .go svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+  footer{margin-top:96px;border-top:1px solid var(--line);padding:26px 0 60px}
+  .foot{display:flex;flex-wrap:wrap;gap:14px 26px;align-items:center;font-size:13.5px;color:var(--dim)}
+  .foot b{color:var(--muted);font-weight:500}
+  .foot nav{display:flex;flex-wrap:wrap;gap:18px;margin-left:auto}
+  .foot nav a{color:var(--muted)}
+  .foot nav a:hover{color:var(--accent-2)}
+</style>
+</head>
+<body>
+
+<header class="nav" id="nav">
+  <div class="wrap nav-in">
+    <a class="brand" href="#top">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <circle cx="12" cy="12" r="8.5" fill="none" stroke="#ffffff" stroke-opacity=".22" stroke-width="5"/>
+        <path d="M12 3.5a8.5 8.5 0 0 1 7.9 11.7" fill="none" stroke="#40b84f" stroke-width="5" stroke-linecap="round"/>
+      </svg>
+      Claude Usage
+    </a>
+    <nav class="nav-links">
+      <a href="#what-it-is">What it is</a>
+      <a href="#install">Install</a>
+      <a href="#ring">The ring</a>
+      <a href="#figures">The figures</a>
+      <a href="#settings">Settings</a>
+      <a class="nav-gh" href="https://github.com/SalvadorCardona/gnome-claude-usage" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .5A11.5 11.5 0 0 0 .5 12a11.5 11.5 0 0 0 7.86 10.92c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.53-1.34-1.3-1.7-1.3-1.7-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.2 1.77 1.2 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.7 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11 11 0 0 1 5.8 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.12 3.05.74.81 1.18 1.84 1.18 3.1 0 4.43-2.69 5.4-5.25 5.69.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 23.5 12 11.5 11.5 0 0 0 12 .5Z"/></svg>
+        GitHub
+      </a>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+
+<div class="hero">
+  <div class="wrap">
+    <span class="eyebrow">GNOME Shell <b>48 · 49 · 50</b> · Wayland &amp; X11</span>
+    <h1>The limit, before<br>you hit it<span class="dot">.</span></h1>
+    <p class="lede">
+      A GNOME Shell indicator for your <strong>Claude Code</strong> usage: a ring in the top bar
+      for the current five-hour window, and on click the whole picture — the weekly limits,
+      when each one resets, and what is driving your consumption.
+    </p>
+    <p class="byline">Free software, GPL-2.0-or-later — by <a href="https://cardona.digital" target="_blank" rel="noopener">Salvador Cardona</a></p>
+
+    <div class="cta">
+      <a class="btn primary" href="https://extensions.gnome.org/extension/10785/claude-usage/" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm0 4.2a5.8 5.8 0 1 1 0 11.6 5.8 5.8 0 0 1 0-11.6Zm0 2.6a3.2 3.2 0 1 0 0 6.4 3.2 3.2 0 0 0 0-6.4Z"/></svg>
+        Install from extensions.gnome.org
+      </a>
+      <div class="install">
+        <span class="prompt">$</span>
+        <span class="cmd" id="install-cmd">git clone https://github.com/SalvadorCardona/gnome-claude-usage &amp;&amp; cd gnome-claude-usage &amp;&amp; ./install.sh</span>
+        <button class="copy" type="button" id="copy-install">Copy</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="demo">
+  <div class="wrap">
+    <div class="shell">
+      <div class="topbar">
+        <span class="activities">Activities</span>
+        <span class="clock" id="demo-clock">Fri 15:08</span>
+        <span class="tray">
+          <button class="indicator open" type="button" id="demo-indicator" aria-expanded="true" aria-controls="demo-menu" title="Claude usage">
+            <svg width="16" height="16" viewBox="0 0 40 40" aria-hidden="true">
+              <circle cx="20" cy="20" r="16" fill="none" stroke="#ffffff" stroke-opacity=".18" stroke-width="8"/>
+              <circle id="panel-arc" cx="20" cy="20" r="16" fill="none" stroke="#40b84f" stroke-width="8"
+                      stroke-linecap="round" stroke-dasharray="37 101" transform="rotate(-90 20 20)"/>
+            </svg>
+            <span id="panel-value" style="color:#40b84f">37 %</span>
+          </button>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 13a11 11 0 0 1 14 0M8.5 16.5a6 6 0 0 1 7 0M12 20h.01"/></svg>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h13v10H4zM17 10h2l1 2-1 2h-2"/></svg>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+        </span>
+      </div>
+
+      <div class="menu" id="demo-menu">
+        <div class="menu-head">
+          <b>Claude usage</b>
+          <button class="rf" type="button" id="demo-refresh" title="Refresh">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 1 0-.6 4M20 5v6h-6"/></svg>
+          </button>
+        </div>
+
+        <div class="gauges">
+          <div class="gauge" data-percent="37">
+            <svg viewBox="0 0 78 78" aria-hidden="true">
+              <circle class="track" cx="39" cy="39" r="32"/>
+              <circle class="arc" cx="39" cy="39" r="32" stroke-dasharray="0 201"/>
+              <text class="val" x="39" y="45">37 %</text>
+            </svg>
+            <div class="t">Current session</div>
+            <div class="h">5-hour window</div>
+            <div class="r">↻ today at 19:50</div>
+          </div>
+          <div class="gauge" data-percent="25">
+            <svg viewBox="0 0 78 78" aria-hidden="true">
+              <circle class="track" cx="39" cy="39" r="32"/>
+              <circle class="arc" cx="39" cy="39" r="32" stroke-dasharray="0 201"/>
+              <text class="val" x="39" y="45">25 %</text>
+            </svg>
+            <div class="t">This week</div>
+            <div class="h">all models</div>
+            <div class="r">↻ Monday at 16:00</div>
+          </div>
+          <div class="gauge" data-percent="8">
+            <svg viewBox="0 0 78 78" aria-hidden="true">
+              <circle class="track" cx="39" cy="39" r="32"/>
+              <circle class="arc" cx="39" cy="39" r="32" stroke-dasharray="0 201"/>
+              <text class="val" x="39" y="45">8 %</text>
+            </svg>
+            <div class="t">This week</div>
+            <div class="h">Fable</div>
+            <div class="r">↻ Monday at 16:00</div>
+          </div>
+        </div>
+
+        <div class="menu-sep"></div>
+
+        <div class="details">
+          <div class="st">Last 24 hours · 1967 requests · 19 sessions</div>
+          <div class="b">90 % with 4 or more sessions in parallel</div>
+          <div class="b">70 % beyond 150k of context</div>
+          <div class="b">Most used skills: /claude-in-chrome 4 %</div>
+          <div class="st">Last 7 days · 5120 requests · 43 sessions</div>
+          <div class="b">85 % beyond 150k of context</div>
+          <div class="b">65 % from sessions open 8 hours or more</div>
+        </div>
+
+        <div class="menu-sep"></div>
+        <div class="menu-foot" id="demo-foot">Read at 15:08</div>
+        <div class="menu-item">Settings…</div>
+      </div>
+    </div>
+
+    <p class="demo-note">
+      The real thing, rebuilt here in the browser — <b>click the indicator</b> to close and reopen the menu,
+      or the refresh arrow to take another reading. The colours are the ones the extension draws:
+      green, then amber, then orange, then red.
+    </p>
+  </div>
+</div>
+
+<section id="what-it-is">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="sec-num">01 — What it is</span>
+      <h2>Three limits run at once. None of them is visible while you work.</h2>
+      <p>
+        A Claude Code subscription is not one counter but three: a sliding five-hour window, a weekly
+        limit across all models, and a weekly limit on the most expensive one. Each has its own
+        percentage and its own reset time — and until now, reading them meant stopping what you were
+        doing to type <code>/usage</code> in an open session. This extension asks in your place, every
+        five minutes, and puts the answer in the top bar.
+      </p>
+    </div>
+
+    <div class="cards">
+      <div class="card">
+        <div class="ico"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></div>
+        <h4>The account’s own figures</h4>
+        <p>They come from <code>claude -p "/usage"</code> — the very command you would type in a session. Not tokens re-added from local logs, not an estimate that drifts from what the account shows.</p>
+      </div>
+      <div class="card">
+        <div class="ico"><svg viewBox="0 0 24 24"><path d="M12 3 4 6v6c0 4.5 3.4 8.3 8 9 4.6-.7 8-4.5 8-9V6l-8-3Z"/><path d="m9 12 2 2 4-4"/></svg></div>
+        <h4>No API key, no token spent</h4>
+        <p>The extension never reads <code>~/.claude/.credentials.json</code> and never talks to Anthropic itself. The CLI does, with the session you already have — so there is nothing to configure and nothing to renew.</p>
+      </div>
+      <div class="card">
+        <div class="ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg></div>
+        <h4>The reset times, in words</h4>
+        <p><em>Aug 27, 7:50pm (Europe/Paris)</em> becomes <em>today at 19:50</em>, or <em>Monday at 16:00</em> — in your language, in your clock format, next to the gauge it belongs to.</p>
+      </div>
+      <div class="card">
+        <div class="ico"><svg viewBox="0 0 24 24"><path d="M4 19h16M7 16V9M12 16V5M17 16v-4"/></svg></div>
+        <h4>And what is driving it</h4>
+        <p>The menu also carries the CLI’s own breakdown: requests and sessions over the last 24 hours and 7 days, how much of it ran in parallel, how much went beyond 150k of context, the skills and MCP servers that weighed most.</p>
+      </div>
+      <div class="card">
+        <div class="ico"><svg viewBox="0 0 24 24"><path d="M13 3 4 14h7l-1 7 9-11h-7l1-7Z"/></svg></div>
+        <h4>It never blocks the shell</h4>
+        <p>A reading takes about five seconds, so it is asynchronous from end to end, spaced out by default, cut off after sixty seconds if the CLI hangs, and abandoned outright if you disable the extension mid-read.</p>
+      </div>
+      <div class="card">
+        <div class="ico"><svg viewBox="0 0 24 24"><path d="M4 5h9M9 3v2c0 5-2.5 8-5 9"/><path d="M7 11c1.5 3 4 5 6 6M12 20l4.5-10 4.5 10M14.5 17h6"/></svg></div>
+        <h4>In your language</h4>
+        <p>The CLI answers in English whatever your locale. The extension parses that English and re-renders it in yours — and a sentence it does not recognise is shown as it came rather than mangled.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="install">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="sec-num">02 — Install</span>
+      <h2>One click, or one clone.</h2>
+      <p>Two routes to the same extension. Both end with a log out and back in — GNOME Shell only picks up a newly added extension at startup, and on Wayland it cannot be restarted in place.</p>
+    </div>
+
+    <h3>From extensions.gnome.org</h3>
+    <p>
+      The one-click route: the toggle on
+      <a href="https://extensions.gnome.org/extension/10785/claude-usage/" target="_blank" rel="noopener">the extension’s page</a>,
+      once the listing has cleared review. Until a GNOME reviewer has looked at it the listing reads
+      <em>Unreviewed</em>, and the site marks it incompatible with every shell version — which is about the review, not about your machine.
+    </p>
+
+    <h3>From source, which works right now</h3>
+    <pre data-copy><span class="p">$ </span>git clone https://github.com/SalvadorCardona/gnome-claude-usage
+<span class="p">$ </span>cd gnome-claude-usage
+<span class="p">$ </span>./install.sh
+<span class="p">$ </span>gnome-extensions enable claude-usage@salvadorcardona.github.io</pre>
+
+    <p>
+      <code>install.sh</code> compiles the settings schema and the French catalogue, then symlinks each
+      file into <code>~/.local/share/gnome-shell/extensions/</code>. Editing the clone is therefore enough to
+      change the installed extension — there is no second copy to keep in step.
+    </p>
+
+    <div class="note">
+      <p><b>Then log out and back in.</b> Nothing before that point will show the indicator, and it is the one step no script can take for you.</p>
+    </div>
+
+    <h3>What it needs</h3>
+    <div class="note">
+      <ul>
+        <li><b>GNOME Shell 48, 49 or 50</b>, on Wayland or X11;</li>
+        <li>the <b><code>claude</code> CLI installed and signed in</b> — found on <code>PATH</code>, then at <code>~/.local/bin/claude</code>, then <code>~/.claude/local/claude</code>. Without it the menu says so, rather than showing a wrong number;</li>
+        <li><code>python3</code> and <code>glib-compile-schemas</code> for the install script — both already present on a normal GNOME desktop.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section id="ring">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="sec-num">03 — The ring</span>
+      <h2>A ring rather than a pie, and four colours rather than one.</h2>
+      <p>
+        At sixteen pixels in the top bar a partly filled disc is unreadable, while an arc compares
+        itself at a glance to the full circle behind it. It sweeps clockwise from noon, and its colour
+        is chosen to warn you, not to alarm you: amber arrives at half, red only when there is little left.
+      </p>
+    </div>
+
+    <div class="tbl">
+      <table>
+        <thead><tr><th>Filled</th><th>Colour</th><th>What it is telling you</th></tr></thead>
+        <tbody>
+          <tr><td><span class="sw" style="background:var(--green)"></span>under 50 %</td><td><code>#40b84f</code> green</td><td>plenty of room. Start the big task.</td></tr>
+          <tr><td><span class="sw" style="background:var(--amber)"></span>50 – 79 %</td><td><code>#d19921</code> amber</td><td>past half. Worth knowing before a long run.</td></tr>
+          <tr><td><span class="sw" style="background:var(--orange)"></span>80 – 94 %</td><td><code>#f08740</code> orange</td><td>the end of the window is close; check the reset time.</td></tr>
+          <tr><td><span class="sw" style="background:var(--red)"></span>95 % and over</td><td><code>#f7524a</code> red</td><td>whatever you start now will probably be cut short.</td></tr>
+          <tr><td><span class="sw" style="background:#6f7889"></span>no reading</td><td>grey, empty</td><td>the CLI is missing or did not answer — never a number that might be wrong.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>
+      Which of the three limits the ring stands for is yours to choose: the current session by default,
+      either weekly limit, or <em>whichever is highest</em> — the one closest to stopping you, whichever
+      that happens to be today. The percentage next to it can be turned off; the ring alone reads well
+      enough from the corner of the eye.
+    </p>
+
+    <figure class="fig">
+      <img src="panel.png" alt="The GNOME top bar, showing a green ring filled to about a third followed by “35 %”." width="360" height="108" loading="lazy">
+      <figcaption>The whole permanent footprint of the extension: one ring, one number.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section id="menu">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="sec-num">04 — The menu</span>
+      <h2>One click, and the three counters are side by side.</h2>
+      <p>
+        Three gauges, one per limit, each with its percentage inside the ring, its name, and the time it
+        resets. Under them, the CLI’s own breakdown of where the consumption went. At the bottom, the
+        time of the reading you are looking at — so a stale figure announces itself instead of pretending.
+      </p>
+    </div>
+
+    <div class="cards">
+      <div class="card">
+        <div class="ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 7 14.6"/></svg></div>
+        <h4>Current session · 5-hour window</h4>
+        <p>The sliding window, the one that cuts a long task short. Its reset time is usually today, and it is what the top bar shows unless you say otherwise.</p>
+      </div>
+      <div class="card">
+        <div class="ico"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></div>
+        <h4>This week · all models</h4>
+        <p>Everything you spend, all models together, over the rolling week.</p>
+      </div>
+      <div class="card">
+        <div class="ico"><svg viewBox="0 0 24 24"><path d="m12 3 2.6 5.6 6.4.8-4.7 4.3 1.2 6.3-5.5-3-5.5 3 1.2-6.3L3 9.4l6.4-.8Z"/></svg></div>
+        <h4>This week · the costly model</h4>
+        <p>The separate weekly allowance on the most expensive model. Its name comes from the CLI as a proper noun — <em>Opus</em>, <em>Fable</em> — and is never translated.</p>
+      </div>
+    </div>
+
+    <h3>The refresh arrow, and when it moves on its own</h3>
+    <p>
+      A reading happens every five minutes by default, and again whenever you open the menu on a reading
+      older than a minute — so what you see when you click has just been taken. The arrow in the header
+      forces one, and spins while it runs. If the CLI fails, the menu says which way it failed — the
+      command was not found, it returned an error, or its answer could not be read — and keeps the last
+      good figures on screen instead of blanking them.
+    </p>
+  </div>
+</section>
+
+<section id="figures">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="sec-num">05 — Where the figures come from</span>
+      <h2>The CLI is the source, and that choice has consequences.</h2>
+      <p>Going through <code>claude -p "/usage"</code> rather than the API is the decision the whole extension is built around. It is worth knowing what it buys and what it costs.</p>
+    </div>
+
+    <pre data-copy><span class="p">$ </span>claude -p <span class="s">"/usage"</span>
+<span class="c">Current session: 37% used · resets Aug 27, 7:50pm (Europe/Paris)</span>
+<span class="c">Current week (all models): 25% used · resets Sep 1, 4:00pm (Europe/Paris)</span>
+<span class="c">Current week (Fable): 8% used · resets Sep 1, 4:00pm (Europe/Paris)</span></pre>
+
+    <ul class="plain">
+      <li><b>Nothing to authenticate.</b> The token stays in the CLI’s hands. There is no key to paste into the settings, and nothing to rotate when it expires.</li>
+      <li><b>About five seconds per reading</b>, which is exactly why it is spaced out and strictly asynchronous. A hung network is cut off after sixty seconds, and a reading in flight is cancelled when you change a setting or disable the extension.</li>
+      <li><b>Its own empty working directory.</b> <code>claude</code> files a session per directory it is run from, so readings are taken in <code>~/.cache/claude-usage-indicator</code> rather than scattering sessions through your home.</li>
+      <li><b>The wording is not a contract.</b> The CLI’s sentences are not a documented interface and may change; every one the extension fails to recognise is displayed verbatim rather than dropped or guessed at.</li>
+    </ul>
+  </div>
+</section>
+
+<section id="settings">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="sec-num">06 — Settings</span>
+      <h2>Four of them, and the defaults are the answer for most people.</h2>
+    </div>
+
+    <div class="tbl">
+      <table>
+        <thead><tr><th>Setting</th><th>Default</th><th>What it does</th></tr></thead>
+        <tbody>
+          <tr><td>Limit shown</td><td>Current session</td><td>Which of the three limits the top bar ring stands for — or whichever is highest.</td></tr>
+          <tr><td>Show the percentage</td><td>on</td><td>The figure next to the ring. Off leaves the ring alone.</td></tr>
+          <tr><td>Refresh interval</td><td>300 s</td><td>Between two readings, from 60 s to an hour. The menu also refreshes on opening if the last reading is over a minute old.</td></tr>
+          <tr><td>Path to the <code>claude</code> binary</td><td>auto</td><td><code>PATH</code>, then <code>~/.local/bin/claude</code>, then <code>~/.claude/local/claude</code>. Set it by hand if yours lives elsewhere.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <pre data-copy><span class="p">$ </span>gnome-extensions prefs claude-usage@salvadorcardona.github.io</pre>
+  </div>
+</section>
+
+<section id="language">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="sec-num">07 — Your language</span>
+      <h2>English in, your locale out.</h2>
+      <p>
+        The same menu, on two machines set to two languages. Everything the extension writes — the limit
+        names, the reset times, the breakdown lines — goes through a translation layer that takes English
+        from the CLI and gives back the language of the session.
+      </p>
+    </div>
+
+    <div class="shots">
+      <figure class="fig">
+        <img src="menu-en.png" alt="The menu in English: three gauges at 37, 25 and 8 percent, then the last-24-hours and last-7-days breakdown." width="420" height="590" loading="lazy">
+        <figcaption>In English, as the CLI answered.</figcaption>
+      </figure>
+      <figure class="fig">
+        <img src="menu-fr.png" alt="The same menu in French, with the same figures and translated labels." width="420" height="590" loading="lazy">
+        <figcaption>And in French, figures and all.</figcaption>
+      </figure>
+    </div>
+
+    <h3>Adding a language</h3>
+    <p><code>po/fr.po</code> is the French catalogue; copy it to yours, translate, and compile:</p>
+    <pre data-copy><span class="p">$ </span>python3 tools/po2mo.py po/xx.po locale/xx/LC_MESSAGES/claude-usage.mo</pre>
+    <p>
+      <code>tools/po2mo.py</code> exists because <code>msgfmt</code> is not installed on a default Ubuntu —
+      use <code>msgfmt</code> instead if you have it. Pull requests with a new catalogue are welcome.
+    </p>
+  </div>
+</section>
+
+<section id="inside">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="sec-num">08 — Inside</span>
+      <h2>Six files, and the one that matters is testable.</h2>
+      <p>Plain GJS, no build step, no dependency: what you clone is what the shell runs.</p>
+    </div>
+
+    <div class="files">
+<b>extension.js</b>   <span class="ar">the indicator: panel ring, menu, refresh loop</span>
+<b>usage.js</b>       <span class="ar">runs the CLI and parses its answer — no interface text</span>
+<b>format.js</b>      <span class="ar">turns the CLI’s English into the user’s language</span>
+<b>pie.js</b>         <span class="ar">the ring, drawn with Cairo</span>
+<b>prefs.js</b>       <span class="ar">the settings window</span>
+<b>po/, tools/</b>    <span class="ar">translations, and the .po → .mo compiler</span>
+    </div>
+
+    <p>
+      <code>format.js</code> takes its translator as an argument instead of importing gettext. That is what
+      lets its rules be exercised outside the shell, where <code>resource:///</code> modules do not exist —
+      and since the CLI’s sentences are the part most likely to change, that is precisely the part worth
+      being able to test.
+    </p>
+  </div>
+</section>
+
+<section id="author">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="sec-num">09 — The author</span>
+      <h2>Written for one desktop — mine — and then made shareable.</h2>
+      <p>Free software under GPL-2.0-or-later, not affiliated with Anthropic. Bugs, translations and ideas are welcome on the repository.</p>
+    </div>
+    <div class="author">
+      <div class="av">SC</div>
+      <div class="txt">
+        <b>Salvador Cardona</b>
+        <span>Thirteen years of web development — and the other projects at the same address.</span>
+      </div>
+      <a class="go" href="https://cardona.digital" target="_blank" rel="noopener">
+        cardona.digital
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg>
+      </a>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap foot">
+    <div class="l">Claude Usage — <b>GPL-2.0-or-later</b> · © 2026 <a href="https://cardona.digital" target="_blank" rel="noopener">Salvador Cardona</a></div>
+    <nav>
+      <a href="https://github.com/SalvadorCardona/gnome-claude-usage">Repository</a>
+      <a href="https://extensions.gnome.org/extension/10785/claude-usage/">extensions.gnome.org</a>
+      <a href="https://github.com/SalvadorCardona/gnome-claude-usage/issues">Report a bug</a>
+      <a href="https://claude.com/claude-code" target="_blank" rel="noopener">Claude Code</a>
+      <a href="https://cardona.digital" target="_blank" rel="noopener">cardona.digital</a>
+    </nav>
+  </div>
+</footer>
+
+<script>
+(function () {
+  'use strict';
+
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* --- ombre de la barre de navigation --- */
+  var nav = document.getElementById('nav');
+  var onScroll = function () { nav.classList.toggle('stuck', window.scrollY > 8); };
+  onScroll();
+  window.addEventListener('scroll', onScroll, { passive: true });
+
+  /* --- copie --- */
+  function flash(btn, label) {
+    var old = btn.textContent;
+    btn.textContent = label;
+    btn.classList.add('done');
+    setTimeout(function () { btn.textContent = old; btn.classList.remove('done'); }, 1600);
+  }
+  function copy(text, btn) {
+    var done = function () { flash(btn, 'Copied!'); };
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text).then(done, function () { flash(btn, 'Failed'); });
+      return;
+    }
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    ta.setAttribute('readonly', '');
+    ta.style.cssText = 'position:absolute;left:-9999px';
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); done(); } catch (e) { flash(btn, 'Failed'); }
+    document.body.removeChild(ta);
+  }
+
+  var ci = document.getElementById('copy-install');
+  ci.addEventListener('click', function () {
+    copy(document.getElementById('install-cmd').textContent.trim(), ci);
+  });
+
+  Array.prototype.forEach.call(document.querySelectorAll('pre[data-copy]'), function (pre) {
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'copy-pre';
+    btn.textContent = 'Copy';
+    btn.setAttribute('aria-label', 'Copy the code block');
+    btn.addEventListener('click', function () {
+      var clone = pre.cloneNode(true);
+      Array.prototype.forEach.call(clone.querySelectorAll('.p, .copy-pre'), function (n) { n.remove(); });
+      copy(clone.textContent.replace(/\n+$/, ''), btn);
+    });
+    pre.appendChild(btn);
+  });
+
+  /* --- la démonstration : les mêmes seuils que pie.js --- */
+  var GAUGE_C = 2 * Math.PI * 32;
+  var PANEL_C = 2 * Math.PI * 16;
+
+  function colorFor(p) {
+    if (p < 50) return '#40b84f';
+    if (p < 80) return '#d19921';
+    if (p < 95) return '#f08740';
+    return '#f7524a';
+  }
+
+  var panelArc = document.getElementById('panel-arc');
+  var panelValue = document.getElementById('panel-value');
+  var gauges = Array.prototype.slice.call(document.querySelectorAll('.gauge'));
+  var foot = document.getElementById('demo-foot');
+  var clock = document.getElementById('demo-clock');
+
+  function paintGauge(gauge, percent) {
+    var arc = gauge.querySelector('.arc');
+    var val = gauge.querySelector('.val');
+    var color = colorFor(percent);
+    var filled = Math.max(percent > 0 ? 1.2 : 0, (percent / 100) * GAUGE_C);
+    arc.setAttribute('stroke-dasharray', filled.toFixed(1) + ' ' + GAUGE_C.toFixed(1));
+    arc.setAttribute('stroke', color);
+    val.setAttribute('fill', color);
+    val.textContent = percent + ' %';
+    gauge.dataset.percent = percent;
+  }
+
+  function paintPanel(percent) {
+    var color = colorFor(percent);
+    var filled = Math.max(percent > 0 ? 1.2 : 0, (percent / 100) * PANEL_C);
+    panelArc.setAttribute('stroke-dasharray', filled.toFixed(1) + ' ' + PANEL_C.toFixed(1));
+    panelArc.setAttribute('stroke', color);
+    panelValue.textContent = percent + ' %';
+    panelValue.style.color = color;
+  }
+
+  /* Le premier rendu part de zéro : l'anneau se remplit comme au démarrage. */
+  var start = gauges.map(function (g) { return Number(g.dataset.percent); });
+  gauges.forEach(function (g) { paintGauge(g, 0); });
+  paintPanel(0);
+
+  function show(readings) {
+    gauges.forEach(function (g, i) { paintGauge(g, readings[i]); });
+    paintPanel(readings[0]);
+    var now = new Date();
+    foot.textContent = 'Read at ' + String(now.getHours()).padStart(2, '0') + ':' +
+      String(now.getMinutes()).padStart(2, '0');
+  }
+
+  /* Une journée de travail, en quatre relevés : le vert devient rouge et la
+   * fenêtre de cinq heures se remet à zéro. */
+  var READINGS = [
+    start,
+    [61, 27, 12],
+    [88, 31, 19],
+    [96, 34, 22],
+    [12, 38, 24]
+  ];
+  var step = 0;
+
+  setTimeout(function () { show(start); }, 260);
+
+  var refresh = document.getElementById('demo-refresh');
+  var busy = false;
+
+  function take(next) {
+    if (busy) return;
+    busy = true;
+    refresh.classList.add('spin');
+    setTimeout(function () {
+      refresh.classList.remove('spin');
+      busy = false;
+      show(next);
+    }, reduce ? 0 : 900);
+  }
+
+  refresh.addEventListener('click', function () {
+    step = (step + 1) % READINGS.length;
+    take(READINGS[step]);
+  });
+
+  var indicator = document.getElementById('demo-indicator');
+  var menu = document.getElementById('demo-menu');
+  indicator.addEventListener('click', function () {
+    var open = menu.classList.toggle('hidden');
+    indicator.classList.toggle('open', !open);
+    indicator.setAttribute('aria-expanded', String(!open));
+  });
+
+  /* Le cycle ne tourne que pendant qu'on regarde, et jamais si le visiteur a
+   * demandé moins d'animation. */
+  if (!reduce && 'IntersectionObserver' in window) {
+    var timer = null;
+    new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting && !timer) {
+          timer = setInterval(function () {
+            if (menu.classList.contains('hidden')) return;
+            step = (step + 1) % READINGS.length;
+            take(READINGS[step]);
+          }, 5200);
+        } else if (!entry.isIntersecting && timer) {
+          clearInterval(timer);
+          timer = null;
+        }
+      });
+    }, { threshold: 0.35 }).observe(menu);
+  }
+
+  /* L'horloge de la barre, à l'heure du visiteur. */
+  function tick() {
+    var now = new Date();
+    clock.textContent = now.toLocaleDateString(undefined, { weekday: 'short' }) + ' ' +
+      String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+  }
+  tick();
+  setInterval(tick, 30000);
+})();
+</script>
+</body>
+</html>

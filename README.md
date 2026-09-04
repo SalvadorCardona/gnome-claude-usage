@@ -1,6 +1,6 @@
 # Claude Usage
 
-*[Version française](README.fr.md)* · [extensions.gnome.org](https://extensions.gnome.org/extension/10785/claude-usage/)
+*[Version française](README.fr.md)* · [The site](https://cardona.digital/gnome-claude-usage/) · [extensions.gnome.org](https://extensions.gnome.org/extension/10785/claude-usage/)
 
 A GNOME Shell indicator for your **Claude Code** usage: a pie in the top bar for
 the current five-hour window, and the full picture on click — the weekly limits,
@@ -102,7 +102,9 @@ extension itself.
 ## Author
 
 Written and maintained by Salvador Cardona, web developer —
-[site de Salvador Cardona](https://cardona.digital). The source lives on
+[site de Salvador Cardona](https://cardona.digital). The extension has a page of
+its own at [cardona.digital/gnome-claude-usage](https://cardona.digital/gnome-claude-usage/),
+and the source lives on
 [GitHub](https://github.com/SalvadorCardona/gnome-claude-usage).
 
 ## Licence
