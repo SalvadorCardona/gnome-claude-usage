@@ -1,3 +1,5 @@
+![gnome-claude-usage](https://raw.githubusercontent.com/SalvadorCardona/brand-assets/main/projects/gnome-claude-usage/banner.png)
+
 # Claude Usage
 
 *[English version](README.md)* · [Le site](https://cardona.digital/gnome-claude-usage/) · [extensions.gnome.org](https://extensions.gnome.org/extension/10785/claude-usage/)
