@@ -1,0 +1,11 @@
+# Claude Usage
+
+> A GNOME Shell indicator for Claude Code: a ring in the top bar for the current five-hour window, and on click the weekly limits, their reset times, and what is driving your consumption. The figures come from the account's own `claude -p "/usage"` CLI reading — no API key, no token spent.
+
+Claude Usage is a GJS extension for GNOME Shell (versions 48, 49, 50). It runs the `claude` CLI asynchronously and never talks to the Anthropic API directly. It is free software under GPL-2.0-or-later, and not affiliated with Anthropic.
+
+## Docs
+
+- [Documentation site](https://cardona.digital/gnome-claude-usage/): the full walkthrough — the panel ring, the menu, where the figures come from, settings, and localisation.
+- [Repository](https://github.com/SalvadorCardona/gnome-claude-usage): source, issues, and the README.
+- [extensions.gnome.org listing](https://extensions.gnome.org/extension/10785/claude-usage/): install page.
