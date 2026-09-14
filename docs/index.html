@@ -14,6 +14,33 @@
 <meta property="og:url" content="https://cardona.digital/gnome-claude-usage/">
 <meta property="og:image" content="https://cardona.digital/gnome-claude-usage/menu-en.png">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Claude Usage — your Claude Code limits, in the GNOME top bar">
+<meta name="twitter:image" content="https://cardona.digital/gnome-claude-usage/menu-en.png">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "Claude Usage",
+  "url": "https://cardona.digital/gnome-claude-usage/",
+  "description": "A GNOME Shell indicator for Claude Code: a ring in the top bar for the current five-hour window, and on click the weekly limits, their reset times, and what is driving your consumption. The account's own figures, read from “claude -p /usage” — no API key, no token spent.",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Linux",
+  "softwareVersion": "GNOME Shell 48, 49, 50",
+  "license": "https://spdx.org/licenses/GPL-2.0-or-later.html",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "Salvador Cardona",
+    "url": "https://cardona.digital"
+  },
+  "codeRepository": "https://github.com/SalvadorCardona/gnome-claude-usage",
+  "downloadUrl": "https://extensions.gnome.org/extension/10785/claude-usage/"
+}
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -577,7 +604,10 @@
     </p>
 
     <figure class="fig">
-      <img src="panel.png" alt="The GNOME top bar, showing a green ring filled to about a third followed by “35 %”." width="360" height="108" loading="lazy">
+      <picture>
+        <source srcset="panel.webp" type="image/webp">
+        <img src="panel.png" alt="The GNOME top bar, showing a green ring filled to about a third followed by “35 %”." width="360" height="108" loading="lazy">
+      </picture>
       <figcaption>The whole permanent footprint of the extension: one ring, one number.</figcaption>
     </figure>
   </div>
@@ -683,11 +713,17 @@
 
     <div class="shots">
       <figure class="fig">
-        <img src="menu-en.png" alt="The menu in English: three gauges at 37, 25 and 8 percent, then the last-24-hours and last-7-days breakdown." width="420" height="590" loading="lazy">
+        <picture>
+          <source srcset="menu-en.webp" type="image/webp">
+          <img src="menu-en.png" alt="The menu in English: three gauges at 37, 25 and 8 percent, then the last-24-hours and last-7-days breakdown." width="420" height="590" loading="lazy">
+        </picture>
         <figcaption>In English, as the CLI answered.</figcaption>
       </figure>
       <figure class="fig">
-        <img src="menu-fr.png" alt="The same menu in French, with the same figures and translated labels." width="420" height="590" loading="lazy">
+        <picture>
+          <source srcset="menu-fr.webp" type="image/webp">
+          <img src="menu-fr.png" alt="The same menu in French, with the same figures and translated labels." width="420" height="590" loading="lazy">
+        </picture>
         <figcaption>And in French, figures and all.</figcaption>
       </figure>
     </div>
