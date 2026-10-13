@@ -24,6 +24,11 @@
       <summary>Show the percentage</summary>
       <description>Shows the value as a number next to the pie.</description>
     </key>
+    <key name="show-countdown" type="b">
+      <default>false</default>
+      <summary>Show the time left before the reset</summary>
+      <description>Shows the time left in the 5-hour window next to the pie.</description>
+    </key>
     <key name="claude-path" type="s">
       <default>''</default>
       <summary>Path to the claude binary</summary>

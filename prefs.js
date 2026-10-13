@@ -45,6 +45,13 @@ export default class ClaudeUsagePreferences extends ExtensionPreferences {
         settings.bind('show-percentage', percentage, 'active', Gio.SettingsBindFlags.DEFAULT);
         display.add(percentage);
 
+        const countdown = new Adw.SwitchRow({
+            title: _('Show the time before the reset'),
+            subtitle: _('Time left in the 5-hour window, next to the pie.'),
+        });
+        settings.bind('show-countdown', countdown, 'active', Gio.SettingsBindFlags.DEFAULT);
+        display.add(countdown);
+
         const reading = new Adw.PreferencesGroup({
             title: _('Reading'),
             description: _('The figures come from “claude -p /usage”, which takes about '

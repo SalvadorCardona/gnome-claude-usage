@@ -20,12 +20,16 @@ import {Extension, gettext as _, ngettext} from 'resource:///org/gnome/shell/ext
 import {Pie, cssColorFor} from './pie.js';
 import {Trend} from './trend.js';
 import * as History from './history.js';
-import {formatReset, localizeBullet, localizePeriod, localizeSummary, pct} from './format.js';
+import {formatRemaining, formatReset, localizeBullet, localizePeriod, localizeSummary, pct} from './format.js';
 import * as Usage from './usage.js';
 
 /* Un relevé plus vieux que ça, à l'ouverture du menu, est rafraîchi : on ne
  * veut pas lire des chiffres d'il y a un quart d'heure. */
 const STALE_SECONDS = 60;
+
+/* Le temps restant se recalcule sur l'horloge, sans relire le CLI : à la
+ * minute près, une demi-minute d'écart suffit. */
+const COUNTDOWN_SECONDS = 30;
 
 /* Le traducteur passé aux fonctions de format.js, qui ignorent tout de gettext
  * pour rester éprouvables hors du shell. */
@@ -77,6 +81,7 @@ class Indicator extends PanelMenu.Button {
         this._busy = false;
         this._destroyed = false;
         this._timeoutId = 0;
+        this._countdownId = 0;
         // Pour chaque limite, les seuils déjà notifiés dans la fenêtre en cours.
         this._notified = new Map();
         this._history = [];
@@ -100,6 +105,10 @@ class Indicator extends PanelMenu.Button {
         this._loadHistory();
         this.refresh();
         this._scheduleRefresh();
+        this._countdownId = GLib.timeout_add_seconds(GLib.PRIORITY_LOW, COUNTDOWN_SECONDS, () => {
+            this._renderCountdown();
+            return GLib.SOURCE_CONTINUE;
+        });
     }
 
     /* --- barre supérieure --- */
@@ -120,7 +129,14 @@ class Indicator extends PanelMenu.Button {
         });
 
         box.add_child(this._panelPie);
+        this._panelCountdown = new St.Label({
+            style_class: 'claude-usage-panel-label',
+            y_align: Clutter.ActorAlign.CENTER,
+            visible: false,
+        });
+
         box.add_child(this._panelLabel);
+        box.add_child(this._panelCountdown);
         this.add_child(box);
     }
 
@@ -375,10 +391,22 @@ class Indicator extends PanelMenu.Button {
             this._panelLabel.style = null;
         }
 
+        this._renderCountdown();
         this._renderGauges();
         this._renderTrend();
         this._renderDetails();
         this._renderFooter();
+    }
+
+    /* Toujours la fenêtre de 5 h, quelle que soit la limite du camembert :
+     * c'est elle qui se renouvelle assez vite pour planifier. */
+    _renderCountdown() {
+        const session = this._data?.limits.find(l => l.key === 'session');
+        const remaining = this._settings.get_boolean('show-countdown') && session
+            ? formatRemaining(session.resets, T)
+            : '';
+        this._panelCountdown.text = remaining ? `↻ ${remaining}` : '';
+        this._panelCountdown.visible = !!remaining;
     }
 
     _renderGauges() {
@@ -495,6 +523,10 @@ class Indicator extends PanelMenu.Button {
         if (this._timeoutId) {
             GLib.source_remove(this._timeoutId);
             this._timeoutId = 0;
+        }
+        if (this._countdownId) {
+            GLib.source_remove(this._countdownId);
+            this._countdownId = 0;
         }
         if (this._settingsChangedId) {
             this._settings.disconnect(this._settingsChangedId);
