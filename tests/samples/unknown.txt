@@ -1,0 +1,2 @@
+Usage statistics are not available for API key users.
+Run /status to see your account details.

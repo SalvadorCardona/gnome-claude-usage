@@ -80,6 +80,17 @@ use `msgfmt` instead if you have it.
 ./pack.sh          # dist/claude-usage@salvadorcardona.github.io.shell-extension.zip
 ```
 
+## Tests
+
+```bash
+gjs -m tests/usage.test.js
+```
+
+The parser in `usage.js` is checked against real and made-up outputs of
+`claude -p "/usage"` kept in `tests/samples/` — the wording is not a documented
+interface, so a change in it should fail here first. `gjs` is enough: no GNOME
+Shell, no Node.
+
 ## Layout
 
 ```
@@ -89,6 +100,7 @@ format.js      turns the CLI's English into the user's language; no GNOME import
 pie.js         the ring, drawn with Cairo
 prefs.js       the settings window
 po/, tools/    translations and the .po → .mo compiler
+tests/         the parser's tests and their CLI samples
 ```
 
 `format.js` takes its translator as an argument instead of importing gettext.

@@ -39,10 +39,17 @@ Empaquetage pour extensions.gnome.org :
 sans passer par `gnome-extensions pack`, volontairement — voir « Pièges »
 ci-dessous.
 
-Il n'y a à ce jour ni suite de tests automatisée ni lint configuré. Ne pas en
-inventer ni en supposer un. `format.js` est écrit pour être éprouvé
-manuellement (il n'importe aucun module GNOME), mais rien ne l'exécute
-automatiquement.
+Tests du parseur de `usage.js`, à lancer depuis la racine du dépôt :
+
+```bash
+gjs -m tests/usage.test.js
+```
+
+Ils confrontent `parseUsage` aux échantillons de `tests/samples/` (sorties
+réelles ou fictives de `claude -p "/usage"`) et sortent en code 1 au moindre
+échec. Pas de lint configuré, pas de CI qui lance ces tests : ne pas en
+supposer. `format.js` est écrit pour être éprouvé manuellement (il n'importe
+aucun module GNOME), mais rien ne l'exécute automatiquement.
 
 ## Arborescence utile
 
@@ -55,6 +62,7 @@ prefs.js       la fenêtre de réglages
 po/            catalogues de traduction (po/fr.po)
 tools/         tools/po2mo.py, compilateur .po → .mo maison
 schemas/       schéma GSettings de l'extension
+tests/         tests du parseur (gjs) et échantillons de sortie du CLI
 ```
 
 ## Conventions de code
