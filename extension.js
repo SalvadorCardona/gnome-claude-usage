@@ -11,6 +11,7 @@ import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
 import St from 'gi://St';
 
+import * as Animation from 'resource:///org/gnome/shell/ui/animation.js';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
 import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
@@ -193,6 +194,15 @@ class Indicator extends PanelMenu.Button {
         });
         this.menu.addMenuItem(this._footer);
 
+        // Rafraîchir à la main, sans toucher à l'intervalle. Le menu reste ouvert
+        // (on court-circuite `activate`, que le menu écoute pour se refermer) :
+        // sinon le cercle d'attente des cinq secondes ne se verrait jamais.
+        this._refreshItem = new PopupMenu.PopupMenuItem(_('Refresh now'));
+        this._refreshItem.activate = () => this.refresh();
+        this._refreshSpinner = new Animation.Spinner(16, {hideOnStop: true});
+        this._refreshItem.add_child(this._refreshSpinner);
+        this.menu.addMenuItem(this._refreshItem);
+
         const prefs = new PopupMenu.PopupMenuItem(_('Settings…'));
         prefs.connect('activate', () => this._extension.openPreferences());
         this.menu.addMenuItem(prefs);
@@ -224,6 +234,8 @@ class Indicator extends PanelMenu.Button {
 
         this._busy = true;
         this._refreshButton.reactive = false;
+        this._refreshItem.setSensitive(false);
+        this._refreshSpinner.play();
         this._render();
 
         try {
@@ -244,6 +256,8 @@ class Indicator extends PanelMenu.Button {
             this._busy = false;
             if (!this._destroyed) {
                 this._refreshButton.reactive = true;
+                this._refreshItem.setSensitive(true);
+                this._refreshSpinner.stop();
                 this._render();
             }
         }
