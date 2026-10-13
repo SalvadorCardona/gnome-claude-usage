@@ -18,7 +18,7 @@ python3 "$SRC/tools/po2mo.py" "$SRC/po/fr.po" "$SRC/locale/fr/LC_MESSAGES/claude
 STAGE="$(mktemp -d)"
 trap 'rm -rf "$STAGE"' EXIT
 
-for item in metadata.json extension.js prefs.js usage.js pie.js format.js stylesheet.css schemas locale; do
+for item in metadata.json extension.js prefs.js usage.js pie.js trend.js history.js format.js stylesheet.css schemas locale; do
     cp -r "$SRC/$item" "$STAGE/"
 done
 

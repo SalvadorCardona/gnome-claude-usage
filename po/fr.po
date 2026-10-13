@@ -228,3 +228,7 @@ msgstr "Second seuil"
 #: prefs.js
 msgid "In percent."
 msgstr "En pourcentage."
+
+#: extension.js
+msgid "Last 7 days · this week"
+msgstr "7 derniers jours · cette semaine"
