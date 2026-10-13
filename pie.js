@@ -10,13 +10,17 @@ import St from 'gi://St';
 
 const TAU = Math.PI * 2;
 
-/* Seuils choisis pour prévenir, pas pour affoler : l'ambre arrive à la moitié,
- * le rouge seulement quand il ne reste plus grand-chose. */
+/* Seuils choisis pour prévenir, pas pour affoler : l'orange arrive à 70 %, le
+ * rouge quand il ne reste plus grand-chose.
+ *
+ * Les teintes sont assombries pour garder au moins 3:1 de contraste sur un
+ * fond clair comme sur un fond sombre (seuil WCAG pour les graphiques). Le
+ * pourcentage, affiché à côté du camembert et dans les jauges, lève l'ambiguïté
+ * quand la teinte seule ne suffit pas à distinguer les niveaux. */
 const PALETTE = [
-    {upTo: 50, color: [0.25, 0.72, 0.31]},   // vert
-    {upTo: 80, color: [0.82, 0.60, 0.13]},   // ambre
-    {upTo: 95, color: [0.94, 0.53, 0.24]},   // orange
-    {upTo: Infinity, color: [0.97, 0.32, 0.29]}, // rouge
+    {upTo: 70, color: [0.18, 0.60, 0.25]},       // vert
+    {upTo: 90, color: [0.85, 0.42, 0.05]},       // orange
+    {upTo: Infinity, color: [0.85, 0.20, 0.20]}, // rouge
 ];
 
 export function colorFor(percent) {
