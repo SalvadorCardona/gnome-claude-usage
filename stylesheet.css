@@ -59,6 +59,11 @@
     color: rgba(255, 255, 255, 0.65);
 }
 
+.claude-usage-trend-item {
+    padding-top: 0;
+    padding-bottom: 6px;
+}
+
 .claude-usage-details {
     spacing: 2px;
     max-width: 360px;

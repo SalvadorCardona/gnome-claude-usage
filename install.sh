@@ -15,7 +15,7 @@ python3 "$SRC/tools/po2mo.py" "$SRC/po/fr.po" "$SRC/locale/fr/LC_MESSAGES/claude
 mkdir -p "$DEST"
 find "$DEST" -mindepth 1 -maxdepth 1 -exec rm -rf {} +
 
-for item in metadata.json extension.js prefs.js usage.js pie.js format.js stylesheet.css schemas locale; do
+for item in metadata.json extension.js prefs.js usage.js pie.js trend.js history.js format.js stylesheet.css schemas locale; do
     ln -sfn "$SRC/$item" "$DEST/$item"
 done
 

@@ -18,6 +18,8 @@ import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
 import {Extension, gettext as _, ngettext} from 'resource:///org/gnome/shell/extensions/extension.js';
 
 import {Pie, cssColorFor} from './pie.js';
+import {Trend} from './trend.js';
+import * as History from './history.js';
 import {formatReset, localizeBullet, localizePeriod, localizeSummary, pct} from './format.js';
 import * as Usage from './usage.js';
 
@@ -77,6 +79,7 @@ class Indicator extends PanelMenu.Button {
         this._timeoutId = 0;
         // Pour chaque limite, les seuils déjà notifiés dans la fenêtre en cours.
         this._notified = new Map();
+        this._history = [];
 
         this._buildPanel();
         this._buildMenu();
@@ -94,6 +97,7 @@ class Indicator extends PanelMenu.Button {
         });
 
         this._render();
+        this._loadHistory();
         this.refresh();
         this._scheduleRefresh();
     }
@@ -158,6 +162,26 @@ class Indicator extends PanelMenu.Button {
         });
         this._gaugesItem.add_child(this._gauges);
         this.menu.addMenuItem(this._gaugesItem);
+
+        // La tendance de la semaine, masquée tant que l'historique est vide.
+        this._trendItem = new PopupMenu.PopupBaseMenuItem({
+            reactive: false,
+            can_focus: false,
+            style_class: 'claude-usage-trend-item',
+        });
+        const trendBox = new St.BoxLayout({
+            orientation: Clutter.Orientation.VERTICAL,
+            x_expand: true,
+        });
+        trendBox.add_child(new St.Label({
+            text: _('Last 7 days · this week'),
+            style_class: 'claude-usage-section-title',
+        }));
+        this._trend = new Trend();
+        trendBox.add_child(this._trend);
+        this._trendItem.add_child(trendBox);
+        this._trendItem.visible = false;
+        this.menu.addMenuItem(this._trendItem);
 
         // Message d'erreur, masqué tant que tout va bien.
         this._errorItem = new PopupMenu.PopupBaseMenuItem({
@@ -244,8 +268,10 @@ class Indicator extends PanelMenu.Button {
             const path = Usage.findClaude(this._settings.get_string('claude-path'));
             this._data = await Usage.fetchUsage(path);
             this._error = null;
-            if (!this._destroyed)
+            if (!this._destroyed) {
                 this._notifyThresholds();
+                this._recordHistory();
+            }
         } catch (error) {
             // Une annulation n'est pas un échec : c'est nous qui l'avons voulue.
             if (!error?.matches?.(Gio.IOErrorEnum, Gio.IOErrorEnum.CANCELLED)) {
@@ -265,6 +291,23 @@ class Indicator extends PanelMenu.Button {
                 this._render();
             }
         }
+    }
+
+    /* --- historique --- */
+
+    async _loadHistory() {
+        const stored = await History.loadHistory();
+        if (this._destroyed)
+            return;
+        // Un relevé a pu arriver pendant la lecture : on garde les deux.
+        this._history = [...stored, ...this._history].sort((a, b) => a.t - b.t);
+        this._renderTrend();
+    }
+
+    _recordHistory() {
+        this._history = History.addSample(this._history, this._data.limits, Date.now());
+        History.saveHistory(this._history).catch(error =>
+            console.warn(`[claude-usage] historique non enregistré : ${error.message}`));
     }
 
     /* --- alertes --- */
@@ -333,6 +376,7 @@ class Indicator extends PanelMenu.Button {
         }
 
         this._renderGauges();
+        this._renderTrend();
         this._renderDetails();
         this._renderFooter();
     }
@@ -353,6 +397,12 @@ class Indicator extends PanelMenu.Button {
                 : '';
             this._errorLabel.text = `${errorMessage(this._error)}${detail}`;
         }
+    }
+
+    _renderTrend() {
+        const points = History.series(this._history, 'week', Date.now());
+        this._trendItem.visible = points.length > 0;
+        this._trend.setPoints(points);
     }
 
     _buildGauge(limit) {
