@@ -284,6 +284,8 @@ class Indicator extends PanelMenu.Button {
             const path = Usage.findClaude(this._settings.get_string('claude-path'));
             this._data = await Usage.fetchUsage(path);
             this._error = null;
+            // Sans attendre, et sans conséquence si l'écriture échoue.
+            History.record(this._data);
             if (!this._destroyed) {
                 this._notifyThresholds();
                 this._recordHistory();
