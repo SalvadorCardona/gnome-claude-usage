@@ -1,0 +1,6 @@
+Current session: 100% used • reset Mar 3, 12am (America/New_York)
+Current week (all models): 91% used • resets Mar 7, 9:30am (America/New_York)
+Current week (Opus): 77% used • resets Mar 7, 9:30am (America/New_York)
+
+Last 24h • 12 requests • 1 session
+  Top skills: /review 3%

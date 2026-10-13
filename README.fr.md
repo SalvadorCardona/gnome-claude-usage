@@ -84,6 +84,17 @@ défaut ; utilisez `msgfmt` si vous l'avez.
 ./pack.sh          # dist/claude-usage@salvadorcardona.github.io.shell-extension.zip
 ```
 
+## Tests
+
+```bash
+gjs -m tests/usage.test.js
+```
+
+Le parseur de `usage.js` est confronté à des sorties réelles et fictives de
+`claude -p "/usage"`, rangées dans `tests/samples/` — ce vocabulaire n'est pas
+une interface documentée, autant qu'un changement échoue ici d'abord. `gjs`
+suffit : ni GNOME Shell, ni Node.
+
 ## Organisation
 
 ```
@@ -93,6 +104,7 @@ format.js      met l'anglais du CLI dans la langue de l'utilisateur ; sans impor
 pie.js         l'anneau, dessiné au Cairo
 prefs.js       la fenêtre de réglages
 po/, tools/    traductions et compilateur .po → .mo
+tests/         tests du parseur et leurs échantillons du CLI
 ```
 
 `format.js` reçoit son traducteur en argument au lieu d'importer gettext. C'est

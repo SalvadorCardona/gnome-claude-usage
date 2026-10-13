@@ -1,0 +1,7 @@
+What's contributing to your limits usage?
+Approximate, based on local sessions on this machine — does not include other devices or claude.ai.
+
+Last 7d · 1307 requests · 25 sessions
+  33% of your usage came from sessions active for 8+ hours
+  Top MCP servers: claude-in-chrome 4%
+not indented, so outside the block
