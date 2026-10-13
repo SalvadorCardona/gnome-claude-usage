@@ -29,5 +29,22 @@
       <summary>Path to the claude binary</summary>
       <description>Leave empty to detect it automatically.</description>
     </key>
+    <key name="notify-enabled" type="b">
+      <default>true</default>
+      <summary>Notify when a limit passes a threshold</summary>
+      <description>Sends a notification once per window for each threshold crossed.</description>
+    </key>
+    <key name="notify-threshold-low" type="i">
+      <default>80</default>
+      <range min="1" max="100"/>
+      <summary>First notification threshold</summary>
+      <description>Percentage of a limit at which the first notification is sent.</description>
+    </key>
+    <key name="notify-threshold-high" type="i">
+      <default>95</default>
+      <range min="1" max="100"/>
+      <summary>Second notification threshold</summary>
+      <description>Percentage of a limit at which the second notification is sent.</description>
+    </key>
   </schema>
 </schemalist>
