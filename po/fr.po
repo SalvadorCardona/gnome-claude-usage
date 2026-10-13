@@ -200,3 +200,31 @@ msgstr "À propos"
 #: prefs.js
 msgid "Author"
 msgstr "Auteur"
+
+#: extension.js
+msgid "%s: %s used"
+msgstr "%s : %s utilisés"
+
+#: prefs.js
+msgid "Notifications"
+msgstr "Notifications"
+
+#: prefs.js
+msgid "Each threshold is notified once per window, for every limit."
+msgstr "Chaque seuil n'est notifié qu'une fois par fenêtre, pour chaque limite."
+
+#: prefs.js
+msgid "Notify when a limit is reached"
+msgstr "Notifier quand une limite est atteinte"
+
+#: prefs.js
+msgid "First threshold"
+msgstr "Premier seuil"
+
+#: prefs.js
+msgid "Second threshold"
+msgstr "Second seuil"
+
+#: prefs.js
+msgid "In percent."
+msgstr "En pourcentage."

@@ -75,6 +75,37 @@ export default class ClaudeUsagePreferences extends ExtensionPreferences {
         path.connect('apply', row => settings.set_string('claude-path', row.text.trim()));
         reading.add(path);
 
+        const alerts = new Adw.PreferencesGroup({
+            title: _('Notifications'),
+            description: _('Each threshold is notified once per window, for every limit.'),
+        });
+        page.add(alerts);
+
+        const notify = new Adw.SwitchRow({
+            title: _('Notify when a limit is reached'),
+        });
+        settings.bind('notify-enabled', notify, 'active', Gio.SettingsBindFlags.DEFAULT);
+        alerts.add(notify);
+
+        for (const [key, title] of [
+            ['notify-threshold-low', _('First threshold')],
+            ['notify-threshold-high', _('Second threshold')],
+        ]) {
+            const row = new Adw.SpinRow({
+                title,
+                subtitle: _('In percent.'),
+                adjustment: new Gtk.Adjustment({
+                    lower: 1,
+                    upper: 100,
+                    step_increment: 1,
+                    page_increment: 5,
+                }),
+            });
+            settings.bind(key, row, 'value', Gio.SettingsBindFlags.DEFAULT);
+            settings.bind('notify-enabled', row, 'sensitive', Gio.SettingsBindFlags.GET);
+            alerts.add(row);
+        }
+
         const about = new Adw.PreferencesGroup({
             title: _('About'),
         });

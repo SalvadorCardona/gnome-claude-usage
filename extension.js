@@ -75,6 +75,8 @@ class Indicator extends PanelMenu.Button {
         this._busy = false;
         this._destroyed = false;
         this._timeoutId = 0;
+        // Pour chaque limite, les seuils déjà notifiés dans la fenêtre en cours.
+        this._notified = new Map();
 
         this._buildPanel();
         this._buildMenu();
@@ -242,6 +244,8 @@ class Indicator extends PanelMenu.Button {
             const path = Usage.findClaude(this._settings.get_string('claude-path'));
             this._data = await Usage.fetchUsage(path);
             this._error = null;
+            if (!this._destroyed)
+                this._notifyThresholds();
         } catch (error) {
             // Une annulation n'est pas un échec : c'est nous qui l'avons voulue.
             if (!error?.matches?.(Gio.IOErrorEnum, Gio.IOErrorEnum.CANCELLED)) {
@@ -260,6 +264,42 @@ class Indicator extends PanelMenu.Button {
                 this._refreshSpinner.stop();
                 this._render();
             }
+        }
+    }
+
+    /* --- alertes --- */
+
+    /* Une notification par seuil franchi et par fenêtre. Le CLI ne donne pas
+     * d'identifiant de fenêtre : on la considère réinitialisée quand le
+     * pourcentage repasse sous le seuil, ce qui réarme l'alerte. Si un seul
+     * relevé saute plusieurs seuils, seul le plus haut est annoncé. */
+    _notifyThresholds() {
+        if (!this._settings.get_boolean('notify-enabled'))
+            return;
+
+        const thresholds = [
+            this._settings.get_int('notify-threshold-low'),
+            this._settings.get_int('notify-threshold-high'),
+        ];
+
+        for (const limit of this._data.limits) {
+            const done = (this._notified.get(limit.key) ?? new Set());
+            for (const threshold of done) {
+                if (limit.percent < threshold)
+                    done.delete(threshold);
+            }
+            this._notified.set(limit.key, done);
+
+            const crossed = thresholds.filter(t => limit.percent >= t && !done.has(t));
+            if (!crossed.length)
+                continue;
+            crossed.forEach(t => done.add(t));
+
+            const {title, hint} = limitLabel(limit);
+            const name = hint ? `${title} (${hint})` : title;
+            const body = _('%s: %s used').replace('%s', name).replace('%s', pct(limit.percent, T));
+            const reset = formatReset(limit.resets, T, new Date(), monthName);
+            Main.notify(_('Claude usage'), reset ? `${body} · ↻ ${reset}` : body);
         }
     }
 
