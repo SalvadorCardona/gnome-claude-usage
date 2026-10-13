@@ -60,6 +60,10 @@ msgid "Reading…"
 msgstr "Relevé en cours…"
 
 #: extension.js
+msgid "Refresh now"
+msgstr "Rafraîchir maintenant"
+
+#: extension.js
 msgid "No reading yet"
 msgstr "Aucun relevé"
 
