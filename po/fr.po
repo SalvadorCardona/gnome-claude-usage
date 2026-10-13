@@ -72,6 +72,14 @@ msgid "Read at %s"
 msgstr "Relevé de %s"
 
 #: format.js
+msgid "%s min"
+msgstr "%s min"
+
+#: format.js
+msgid "%s h %s"
+msgstr "%s h %s"
+
+#: format.js
 msgid "today at %s"
 msgstr "aujourd'hui à %s"
 
@@ -168,6 +176,14 @@ msgstr "La plus consommée des trois"
 #: prefs.js
 msgid "Show the percentage"
 msgstr "Afficher le pourcentage"
+
+#: prefs.js
+msgid "Show the time before the reset"
+msgstr "Afficher le temps avant la réinitialisation"
+
+#: prefs.js
+msgid "Time left in the 5-hour window, next to the pie."
+msgstr "Temps restant dans la fenêtre de 5 h, à côté du camembert."
 
 #: prefs.js
 msgid "As a number, next to the pie."

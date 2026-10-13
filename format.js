@@ -26,8 +26,33 @@ const MONTHS = {
  * respecter la locale ; sans lui, on garde l'abréviation anglaise.
  */
 export function formatReset(raw, t = IDENTITY, now = new Date(), monthName = null) {
-    if (!raw)
+    const parsed = parseReset(raw, now);
+    if (!parsed)
         return '';
+    if (typeof parsed === 'string')
+        return parsed;
+
+    const {date, hour, minute, label} = parsed;
+    const time = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+
+    const delta = daysBetween(now, date);
+    if (delta === 0)
+        return format(t._('today at %s'), time);
+    if (delta === 1)
+        return format(t._('tomorrow at %s'), time);
+
+    const monthLabel = monthName ? monthName(date) : label;
+    return format(t._('%s %s at %s'), String(date.getDate()), monthLabel, time);
+}
+
+/**
+ * « Aug 27, 2:30pm (Europe/Paris) » → la Date correspondante, ou null si
+ * `raw` est vide. Une chaîne non reconnue est rendue sans la zone, telle
+ * quelle : formatReset l'affiche, formatRemaining l'ignore.
+ */
+function parseReset(raw, now) {
+    if (!raw)
+        return null;
 
     const withoutZone = raw.replace(/\s*\([^)]*\)\s*$/, '').trim();
     const match = withoutZone.match(
@@ -54,17 +79,29 @@ export function formatReset(raw, t = IDENTITY, now = new Date(), monthName = nul
     if (new Date(year, month, day, hour, minute).getTime() < now.getTime() - 30 * 24 * 3600 * 1000)
         year += 1;
 
-    const date = new Date(year, month, day, hour, minute);
-    const time = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+    return {date: new Date(year, month, day, hour, minute), hour, minute, label: match[1]};
+}
 
-    const delta = daysBetween(now, date);
-    if (delta === 0)
-        return format(t._('today at %s'), time);
-    if (delta === 1)
-        return format(t._('tomorrow at %s'), time);
+/**
+ * Le temps qui sépare `now` de la remise à zéro, en format court : « 2 h 10 »
+ * ou « 42 min ». Chaîne vide si la date est inconnue, illisible ou déjà
+ * passée (le prochain relevé la renouvellera). Calculé sur l'horloge, sans
+ * relire le CLI.
+ */
+export function formatRemaining(raw, t = IDENTITY, now = new Date()) {
+    const parsed = parseReset(raw, now);
+    if (!parsed || typeof parsed === 'string')
+        return '';
 
-    const monthLabel = monthName ? monthName(date) : match[1];
-    return format(t._('%s %s at %s'), String(day), monthLabel, time);
+    const minutes = Math.ceil((parsed.date.getTime() - now.getTime()) / 60000);
+    if (minutes <= 0)
+        return '';
+
+    const h = Math.floor(minutes / 60);
+    const m = minutes % 60;
+    if (h === 0)
+        return format(t._('%s min'), String(m));
+    return format(t._('%s h %s'), String(h), String(m).padStart(2, '0'));
 }
 
 function daysBetween(from, to) {
