@@ -55,17 +55,21 @@ function limitLabel(limit) {
     }
 }
 
-/* Les pannes de relevé, dites en clair. */
+/* Les pannes de relevé, dites en clair : ce qui s'est passé, puis quoi faire. */
 function errorMessage(error) {
     switch (error?.code) {
     case 'no-binary':
-        return _('The “claude” command was not found');
+        return `${_('The “claude” command was not found')}\n${_('Install Claude Code, or set its path in the extension settings')}`;
+    case 'not-logged-in':
+        return `${_('Claude Code is not logged in')}\n${_('Run “claude” in a terminal, type /login, then refresh')}`;
+    case 'network':
+        return `${_('Claude did not answer: the network is unreachable')}\n${_('Check your connection, then refresh')}`;
     case 'command-failed':
-        return _('“claude -p /usage” failed');
+        return `${_('“claude -p /usage” failed')}\n${_('Run that command in a terminal to see the full error')}`;
     case 'unreadable':
-        return _('Unexpected answer from “claude -p /usage”');
+        return `${_('Unexpected answer from “claude -p /usage”')}\n${_('Refresh again; if it persists, report the text below')}`;
     default:
-        return _('Could not read your usage');
+        return `${_('Could not read your usage')}\n${_('Refresh again; if it persists, check the GNOME Shell logs')}`;
     }
 }
 

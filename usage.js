@@ -95,7 +95,9 @@ export async function fetchUsage(claudePath) {
     const proc = launcher.spawnv([claudePath, '-p', '/usage']);
 
     // Le CLI peut rester pendu sur un réseau qui ne répond pas ; on coupe.
+    let timedOut = false;
     const timeoutId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 60, () => {
+        timedOut = true;
         proc.force_exit();
         return GLib.SOURCE_REMOVE;
     });
@@ -110,13 +112,49 @@ export async function fetchUsage(claudePath) {
     }
 
     if (!proc.get_successful())
-        throw new UsageError('command-failed', (stderr || stdout || '').trim());
+        throw classifyFailure(`${stderr || ''}\n${stdout || ''}`, timedOut);
 
     const parsed = parseUsage(stdout || '');
     if (!parsed.limits.length)
-        throw new UsageError('unreadable', (stdout || '').trim());
+        throw classifyNoLimits(parsed.raw);
 
     return parsed;
+}
+
+/* Ce que le CLI écrit en anglais quand il échoue. Ses messages ne sont pas
+ * documentés : ces motifs suivent ce qu'on a pu observer, et le reste reste
+ * « command-failed », avec le texte brut. */
+const NETWORK_OUTPUT = /ENOTFOUND|ECONNREFUSED|ECONNRESET|ETIMEDOUT|EAI_AGAIN|fetch failed|network/i;
+const LOGIN_OUTPUT = /\/login|not logged in|authenticat/i;
+const SUBSCRIPTION_OUTPUT = /You are currently using your subscription/;
+const API_KEY_OUTPUT = /API key users/;
+
+/**
+ * Classe un échec, c'est-à-dire un code de sortie non nul. Un CLI qui n'a pas
+ * répondu avant la temporisation de fetchUsage est tenu pour une panne réseau.
+ */
+export function classifyFailure(output, timedOut = false) {
+    if (timedOut)
+        return new UsageError('network');
+
+    const text = output.trim();
+    if (NETWORK_OUTPUT.test(text))
+        return new UsageError('network');
+    if (LOGIN_OUTPUT.test(text))
+        return new UsageError('not-logged-in');
+    return new UsageError('command-failed', text);
+}
+
+/**
+ * Classe une sortie réussie sans aucune limite. Sans connexion, le CLI ne
+ * répond que par ses statistiques, sans la ligne d'abonnement : c'est un compte
+ * non connecté, et non un format changé. Un compte à clé d'API a son propre
+ * message, qu'on affiche tel quel.
+ */
+export function classifyNoLimits(text) {
+    if (SUBSCRIPTION_OUTPUT.test(text) || API_KEY_OUTPUT.test(text))
+        return new UsageError('unreadable', text.trim());
+    return new UsageError('not-logged-in');
 }
 
 const RESET_SUFFIX = String.raw`(?:\s*[·•]\s*resets?\s+(.+?))?\s*$`;
