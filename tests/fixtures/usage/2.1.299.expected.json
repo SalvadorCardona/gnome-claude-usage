@@ -1,0 +1,49 @@
+{
+  "limits": [
+    {
+      "key": "session",
+      "percent": 10,
+      "resets": "Oct 15, 1:10am (Etc/UTC)"
+    },
+    {
+      "key": "week",
+      "percent": 31,
+      "resets": "Oct 19, 4pm (Etc/UTC)"
+    },
+    {
+      "key": "model",
+      "model": "Fable",
+      "percent": 0,
+      "resets": "Oct 19, 4pm (Etc/UTC)"
+    }
+  ],
+  "sections": [
+    {
+      "title": "Last 24h",
+      "summary": "3881 requests · 113 sessions",
+      "bullets": [
+        "67% of your usage was while 4+ sessions ran in parallel",
+        "58% of your usage was at >150k context",
+        "23% of your usage came from subagent-heavy sessions",
+        "23% of your usage went to always-on context over 40k tokens",
+        "Top skills: /skill-1 7%",
+        "Top subagents: subagent-1 1%",
+        "Top MCP servers: server-1 14%, server-2 2%"
+      ]
+    },
+    {
+      "title": "Last 7d",
+      "summary": "20230 requests · 610 sessions",
+      "bullets": [
+        "57% of your usage was while 4+ sessions ran in parallel",
+        "56% of your usage was at >150k context",
+        "20% of your usage went to always-on context over 40k tokens",
+        "11% of your usage came from subagent-heavy sessions",
+        "Top skills: /skill-1 9%, /skill-2 2%, /skill-3 1%",
+        "Top subagents: subagent-1 1%",
+        "Top MCP servers: server-1 12%, server-2 1%"
+      ]
+    }
+  ],
+  "note": "Approximate, based on local sessions on this machine — does not include other devices or claude.ai. Behaviors are independent characteristics, not a breakdown."
+}
