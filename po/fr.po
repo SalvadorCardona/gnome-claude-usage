@@ -248,3 +248,35 @@ msgstr "En pourcentage."
 #: extension.js
 msgid "Last 7 days · this week"
 msgstr "7 derniers jours · cette semaine"
+
+#: extension.js
+msgid "Install Claude Code, or set its path in the extension settings"
+msgstr "Installez Claude Code, ou indiquez son chemin dans les paramètres de l'extension"
+
+#: extension.js
+msgid "Claude Code is not logged in"
+msgstr "Claude Code n’est pas connecté"
+
+#: extension.js
+msgid "Run “claude” in a terminal, type /login, then refresh"
+msgstr "Lancez « claude » dans un terminal, tapez /login, puis rafraîchissez"
+
+#: extension.js
+msgid "Claude did not answer: the network is unreachable"
+msgstr "Claude ne répond pas : le réseau est injoignable"
+
+#: extension.js
+msgid "Check your connection, then refresh"
+msgstr "Vérifiez votre connexion, puis rafraîchissez"
+
+#: extension.js
+msgid "Run that command in a terminal to see the full error"
+msgstr "Lancez cette commande dans un terminal pour voir l’erreur complète"
+
+#: extension.js
+msgid "Refresh again; if it persists, report the text below"
+msgstr "Rafraîchissez à nouveau ; si cela persiste, signalez le texte ci-dessous"
+
+#: extension.js
+msgid "Refresh again; if it persists, check the GNOME Shell logs"
+msgstr "Rafraîchissez à nouveau ; si cela persiste, consultez les journaux de GNOME Shell"

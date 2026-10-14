@@ -17,7 +17,7 @@
 import GLib from 'gi://GLib';
 import System from 'system';
 
-import {parseUsage} from '../usage.js';
+import {classifyFailure, classifyNoLimits, parseUsage} from '../usage.js';
 
 const SAMPLES = GLib.build_filenamev([
     GLib.path_get_dirname(GLib.filename_from_uri(import.meta.url)[0]),
@@ -117,6 +117,47 @@ const TESTS = {
     'sortie vide : rien, sans exception'() {
         const {fetchedAt: _, ...usage} = parseUsage('');
         assertEqual(usage, {limits: [], sections: [], note: '', raw: ''}, 'relevé');
+    },
+
+    'échec : délai dépassé, c’est le réseau'() {
+        const e = classifyFailure('', true);
+        assertEqual([e.code, e.detail], ['network', ''], 'code');
+    },
+
+    'échec : erreur réseau sur stderr'() {
+        const e = classifyFailure('Error: getaddrinfo ENOTFOUND api.anthropic.com\n', false);
+        assertEqual([e.code, e.detail], ['network', ''], 'code');
+    },
+
+    'échec : demande de /login'() {
+        const e = classifyFailure('Please run /login to continue\n', false);
+        assertEqual([e.code, e.detail], ['not-logged-in', ''], 'code');
+    },
+
+    'échec sans motif connu : le texte brut'() {
+        const e = classifyFailure('  boom  \n', false);
+        assertEqual([e.code, e.detail], ['command-failed', 'boom'], 'code');
+    },
+
+    'sans limites ni abonnement : compte non connecté'() {
+        const e = classifyNoLimits([
+            'Total cost:            $0.0000',
+            'Total duration (API):  0s',
+            'Usage:                 0 input, 0 output, 0 cache read, 0 cache write',
+        ].join('\n'));
+        assertEqual([e.code, e.detail], ['not-logged-in', ''], 'code');
+    },
+
+    'sans limites, avec abonnement : format inconnu'() {
+        const text = 'You are currently using your subscription to power your Claude Code usage\n';
+        const e = classifyNoLimits(text);
+        assertEqual([e.code, e.detail], ['unreadable', text.trim()], 'code');
+    },
+
+    'sans limites, clé d’API : message du CLI affiché tel quel'() {
+        const text = sample('unknown.txt').trim();
+        const e = classifyNoLimits(text);
+        assertEqual([e.code, e.detail], ['unreadable', text], 'code');
     },
 };
 
