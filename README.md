@@ -107,6 +107,22 @@ tests/         the parser's tests and their CLI samples
 That is what lets its rules be exercised outside the shell, where
 `resource:///` modules do not exist.
 
+## Parser contract test
+
+The CLI's wording can change without notice. `tests/fixtures/usage/` holds one
+anonymised sample of `claude -p "/usage"` per CLI version, and the test replays
+them all — the first to fail names the version that broke the parser.
+
+```bash
+gjs -m tests/parser-contract.js                    # replay every sample (no CLI call)
+python3 tools/capture-usage.py                     # save the current CLI output as a new sample
+gjs -m tests/parser-contract.js --write-expected   # then generate its expected result
+```
+
+The capture script replaces the time zone, e-mail addresses, the home path and
+the skill / subagent / MCP server names before saving. Review the sample before
+committing it.
+
 ## Credits
 
 The icon was generated with Google's Gemini 2.5 Flash Image (“nano banana”) via
