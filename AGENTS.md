@@ -1,4 +1,4 @@
-# Claude Usage — CLAUDE.md
+# Claude Usage — AGENTS.md
 
 Extension GNOME Shell qui affiche la consommation Claude Code dans la barre
 supérieure (camembert, fenêtre de 5 h) avec le détail au clic (limites
